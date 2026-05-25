@@ -1,0 +1,152 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\API\Management;
+
+use App\Enums\AutorisationStatutEnum;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Management\StoreAutorisationRequest;
+use App\Http\Resources\AutorisationResource;
+use App\Models\Absence;
+use App\Models\Autorisation;
+use App\Models\Notification;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Throwable;
+
+class AutorisationController extends Controller
+{
+    /**
+     * Liste des autorisations.
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $user = auth()->user();
+
+        $query = Autorisation::with([
+            'absence.stagiaire.groupe',
+            'absence.groupe.filiere',
+            'targetUser',
+            'validatedByUser',
+        ])->orderByDesc('created_at');
+
+        if ($request->statut) {
+            $query->where('statut', (string) $request->statut);
+        }
+
+        if ($request->is_read !== null && $request->is_read !== '') {
+            $isRead = filter_var($request->is_read, FILTER_VALIDATE_BOOL);
+            $query->where('is_read', $isRead);
+        }
+
+        $autorisations = $query->paginate($this->perPage($request));
+
+        return $this->paginatedResponse(
+            AutorisationResource::collection($autorisations),
+            'Liste des autorisations',
+        );
+    }
+
+    /**
+     * Détails d'une autorisation.
+     */
+    public function show(Request $request, int $autorisationId): JsonResponse
+    {
+        $user = auth()->user();
+
+        $autorisation = Autorisation::with([
+            'absence.stagiaire.groupe.filiere',
+            'absence.groupe.formateurs',
+            'targetUser',
+            'validatedByUser',
+        ])->findOrFail($autorisationId);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Détails de l autorisation',
+            'data' => new AutorisationResource($autorisation),
+        ]);
+    }
+
+    /**
+     * Créer une autorisation.
+     */
+    public function store(StoreAutorisationRequest $request): JsonResponse
+    {
+        $user = auth()->user();
+
+        $data = $request->validated();
+
+        DB::beginTransaction();
+
+        try {
+            $absence = Absence::with(['stagiaire', 'groupe.formateurs'])
+                ->findOrFail((int) $data['absence_id']);
+
+            $formateur = User::where('id', (int) $data['target_user_id'])
+                ->where('is_active', true)
+                ->role('formateur')
+                ->firstOrFail();
+
+            $autorisation = Autorisation::create([
+                'absence_id' => $absence->id,
+                'target_user_id' => $formateur->id,
+                'code' => $this->generateCode(),
+                'motif' => $data['motif'] ?? null,
+                'statut' => AutorisationStatutEnum::EnAttente,
+                'created_by' => $user->id,
+            ]);
+
+            Notification::create([
+                'user_id' => $formateur->id,
+                'title' => 'Nouvelle autorisation',
+                'message' => 'Une nouvelle autorisation a ete creee.',
+                'type' => 'autorisation',
+                'is_read' => false,
+            ]);
+
+            $autorisation->load([
+                'absence.stagiaire.groupe.filiere',
+                'absence.groupe.formateurs',
+                'targetUser',
+                'validatedByUser',
+            ]);
+
+            DB::commit();
+        } catch (Throwable $exception) {
+            DB::rollBack();
+
+            throw $exception;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Autorisation creee',
+            'data' => new AutorisationResource($autorisation),
+        ], 201);
+    }
+
+    /**
+     * Générer un code unique pour l'autorisation.
+     */
+    private function generateCode(): string
+    {
+        $code = '';
+        $codeExists = true;
+
+        while ($codeExists) {
+            $code = sprintf(
+                'AUT-%s-%s',
+                now()->format('Ymd'),
+                strtoupper(bin2hex(random_bytes(3))),
+            );
+
+            $codeExists = Autorisation::where('code', $code)->exists();
+        }
+
+        return $code;
+    }
+}

@@ -1,0 +1,2462 @@
+{
+  "info": {
+    "_postman_id": "0f8f41b2-93eb-4b7a-8d62-2c9f9de35b8e",
+    "name": "OFPPT Absence Management System API",
+    "description": "Collection Postman v2.1 pour l API Laravel OFPPT Absence Management System.\n\nUtilisation rapide:\n1. Lancez les requetes de login pour remplir les tokens.\n2. Les dossiers metier recopie automatiquement le bon token dans {{token}}.\n3. Les exemples suivent les routes et validations Laravel du projet.\n\nBase URL par defaut: http://127.0.0.1:8000/api",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "gestionnaire_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "formateur_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "directeur_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "Connexion et gestion du profil courant. Les scripts de login enregistrent automatiquement le token global et le token du role concerne.",
+      "item": [
+        {
+          "name": "Login Gestionnaire",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login gestionnaire succeeded\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "let token = \"\";",
+                  "",
+                  "if (json && json.data && json.data.token) {",
+                  "  token = json.data.token;",
+                  "  pm.collectionVariables.set(\"token\", token);",
+                  "  pm.collectionVariables.set(\"gestionnaire_token\", token);",
+                  "  if (pm.environment) {",
+                  "    pm.environment.set(\"token\", token);",
+                  "    pm.environment.set(\"gestionnaire_token\", token);",
+                  "  }",
+                  "}",
+                  "",
+                  "pm.test(\"Gestionnaire token stored\", function () {",
+                  "  pm.expect(token).to.be.a(\"string\").and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"gestionnaire@ofppt.local\",\n  \"password\": \"Password@123\",\n  \"device_name\": \"postman-gestionnaire\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login Formateur",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login formateur succeeded\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "let token = \"\";",
+                  "",
+                  "if (json && json.data && json.data.token) {",
+                  "  token = json.data.token;",
+                  "  pm.collectionVariables.set(\"token\", token);",
+                  "  pm.collectionVariables.set(\"formateur_token\", token);",
+                  "  if (pm.environment) {",
+                  "    pm.environment.set(\"token\", token);",
+                  "    pm.environment.set(\"formateur_token\", token);",
+                  "  }",
+                  "}",
+                  "",
+                  "pm.test(\"Formateur token stored\", function () {",
+                  "  pm.expect(token).to.be.a(\"string\").and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"formateur1@ofppt.local\",\n  \"password\": \"Password@123\",\n  \"device_name\": \"postman-formateur\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login Directeur",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login directeur succeeded\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "let token = \"\";",
+                  "",
+                  "if (json && json.data && json.data.token) {",
+                  "  token = json.data.token;",
+                  "  pm.collectionVariables.set(\"token\", token);",
+                  "  pm.collectionVariables.set(\"directeur_token\", token);",
+                  "  if (pm.environment) {",
+                  "    pm.environment.set(\"token\", token);",
+                  "    pm.environment.set(\"directeur_token\", token);",
+                  "  }",
+                  "}",
+                  "",
+                  "pm.test(\"Directeur token stored\", function () {",
+                  "  pm.expect(token).to.be.a(\"string\").and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"directeur@ofppt.local\",\n  \"password\": \"Password@123\",\n  \"device_name\": \"postman-directeur\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "description": "Tests des notifications. Ce dossier recharge automatiquement le token directeur pour que les exemples bases sur la notification 1 soient executables.",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const roleToken = pm.collectionVariables.get(\"directeur_token\") || \"\";",
+              "pm.collectionVariables.set(\"token\", roleToken);",
+              "if (pm.environment) {",
+              "  pm.environment.set(\"token\", roleToken);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "Liste des notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Notifications non lues",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/unread",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "unread"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Marquer notification 1 comme lue",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/1/read",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "1",
+                "read"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Tout marquer comme lu",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/read-all",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "read-all"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Formateur - Groupes",
+      "description": "Exemples prevus pour formateur1@ofppt.local. Ce dossier injecte automatiquement {{formateur_token}} dans {{token}}.",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const roleToken = pm.collectionVariables.get(\"formateur_token\") || \"\";",
+              "pm.collectionVariables.set(\"token\", roleToken);",
+              "if (pm.environment) {",
+              "  pm.environment.set(\"token\", roleToken);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "Liste des groupes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/formateur/groupes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "formateur",
+                "groupes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Detail groupe 6",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/formateur/groupes/6",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "formateur",
+                "groupes",
+                "6"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Recherche groupes par code",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/formateur/groupes?search=ID",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "formateur",
+                "groupes"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "ID"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filtre groupes par filiere",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/formateur/groupes?filiere_id=3",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "formateur",
+                "groupes"
+              ],
+              "query": [
+                {
+                  "key": "filiere_id",
+                  "value": "3"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Formateur - Stagiaires",
+      "description": "Exemples prevus pour formateur1@ofppt.local avec un groupe reellement affecte a ce formateur.",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const roleToken = pm.collectionVariables.get(\"formateur_token\") || \"\";",
+              "pm.collectionVariables.set(\"token\", roleToken);",
+              "if (pm.environment) {",
+              "  pm.environment.set(\"token\", roleToken);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "Liste des stagiaires",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/formateur/stagiaires",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "formateur",
+                "stagiaires"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Detail stagiaire 91",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/formateur/stagiaires/91",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "formateur",
+                "stagiaires",
+                "91"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Recherche stagiaires par prenom",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/formateur/stagiaires?search=Germaine",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "formateur",
+                "stagiaires"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "Germaine"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filtre stagiaires par groupe",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/formateur/stagiaires?groupe_id=6",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "formateur",
+                "stagiaires"
+              ],
+              "query": [
+                {
+                  "key": "groupe_id",
+                  "value": "6"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Formateur - Absences",
+      "description": "Exemples prevus pour formateur1@ofppt.local avec des IDs existants dans ses groupes.",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const roleToken = pm.collectionVariables.get(\"formateur_token\") || \"\";",
+              "pm.collectionVariables.set(\"token\", roleToken);",
+              "if (pm.environment) {",
+              "  pm.environment.set(\"token\", roleToken);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "Liste des absences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/formateur/absences",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "formateur",
+                "absences"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Detail absence 68",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/formateur/absences/68",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "formateur",
+                "absences",
+                "68"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filtre absences par groupe",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/formateur/absences?groupe_id=6",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "formateur",
+                "absences"
+              ],
+              "query": [
+                {
+                  "key": "groupe_id",
+                  "value": "6"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filtre absences par stagiaire",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/formateur/absences?stagiaire_id=98",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "formateur",
+                "absences"
+              ],
+              "query": [
+                {
+                  "key": "stagiaire_id",
+                  "value": "98"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filtre absences par type",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/formateur/absences?type=absence",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "formateur",
+                "absences"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "absence"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Formateur - Autorisations",
+      "description": "Exemples prevus pour formateur1@ofppt.local. Le statut valide attendu par l API est `validee` ou `refusee`.",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const roleToken = pm.collectionVariables.get(\"formateur_token\") || \"\";",
+              "pm.collectionVariables.set(\"token\", roleToken);",
+              "if (pm.environment) {",
+              "  pm.environment.set(\"token\", roleToken);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "Liste des autorisations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/formateur/autorisations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "formateur",
+                "autorisations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Detail autorisation 55",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/formateur/autorisations/55",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "formateur",
+                "autorisations",
+                "55"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filtre autorisations en attente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/formateur/autorisations?statut=en_attente",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "formateur",
+                "autorisations"
+              ],
+              "query": [
+                {
+                  "key": "statut",
+                  "value": "en_attente"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mettre a jour le statut de l autorisation 55",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statut\": \"validee\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/formateur/autorisations/55/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "formateur",
+                "autorisations",
+                "55",
+                "status"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gestionnaire",
+      "description": "CRUD et consultations pour les routes gestionnaire. Chaque sous-dossier charge automatiquement le token de gestionnaire.",
+      "item": [
+        {
+          "name": "Filieres",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const roleToken = pm.collectionVariables.get(\"gestionnaire_token\") || \"\";",
+                  "pm.collectionVariables.set(\"token\", roleToken);",
+                  "if (pm.environment) {",
+                  "  pm.environment.set(\"token\", roleToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "item": [
+            {
+              "name": "Liste des filieres",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/filieres",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "filieres"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Detail filiere 1",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/filieres/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "filieres",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Creer une filiere",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nom\": \"Filiere QA {{$timestamp}}\",\n  \"code\": \"QA-FIL-{{$timestamp}}\",\n  \"description\": \"Filiere creee depuis Postman pour les tests API.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/filieres",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "filieres"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Mettre a jour la filiere 1",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"description\": \"Mise a jour Postman {{$timestamp}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/filieres/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "filieres",
+                    "1"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Groupes",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const roleToken = pm.collectionVariables.get(\"gestionnaire_token\") || \"\";",
+                  "pm.collectionVariables.set(\"token\", roleToken);",
+                  "if (pm.environment) {",
+                  "  pm.environment.set(\"token\", roleToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "item": [
+            {
+              "name": "Liste des groupes",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/groupes",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "groupes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Detail groupe 1",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/groupes/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "groupes",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Recherche groupes",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/groupes?search=DDOWFS",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "groupes"
+                  ],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "DDOWFS"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Filtre groupes par filiere",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/groupes?filiere_id=1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "groupes"
+                  ],
+                  "query": [
+                    {
+                      "key": "filiere_id",
+                      "value": "1"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Creer un groupe",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"filiere_id\": 1,\n  \"nom\": \"Groupe QA {{$timestamp}}\",\n  \"code\": \"QA-GRP-{{$timestamp}}\",\n  \"annee_formation\": \"2026-2027\",\n  \"niveau\": \"1ere annee\",\n  \"capacite\": 24,\n  \"formateur_ids\": [\n    3\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/groupes",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "groupes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Mettre a jour le groupe 1",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"capacite\": 31\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/groupes/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "groupes",
+                    "1"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Stagiaires",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const roleToken = pm.collectionVariables.get(\"gestionnaire_token\") || \"\";",
+                  "pm.collectionVariables.set(\"token\", roleToken);",
+                  "if (pm.environment) {",
+                  "  pm.environment.set(\"token\", roleToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "item": [
+            {
+              "name": "Liste des stagiaires",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/stagiaires",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "stagiaires"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Detail stagiaire 1",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/stagiaires/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "stagiaires",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Recherche stagiaires",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/stagiaires?search=Morar",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "stagiaires"
+                  ],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "Morar"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Filtre stagiaires par groupe",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/stagiaires?groupe_id=1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "stagiaires"
+                  ],
+                  "query": [
+                    {
+                      "key": "groupe_id",
+                      "value": "1"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Creer un stagiaire",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"groupe_id\": 1,\n  \"diplome_type_id\": 1,\n  \"cef\": \"CEF{{$timestamp}}\",\n  \"nom\": \"Stagiaire\",\n  \"prenom\": \"Postman\",\n  \"cin\": \"QA{{$timestamp}}\",\n  \"email\": \"stagiaire.{{$timestamp}}@example.com\",\n  \"telephone\": \"0612345678\",\n  \"date_naissance\": \"2004-01-15\",\n  \"adresse\": \"Hay Targa\",\n  \"ville\": \"Tiznit\",\n  \"photo\": \"https://example.com/photo.jpg\",\n  \"sexe\": \"homme\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/stagiaires",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "stagiaires"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Importer des stagiaires",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": "storage/app/examples/stagiaires_import_example.xlsx"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/stagiaires/import",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "stagiaires",
+                    "import"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Mettre a jour le stagiaire 1",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"stagiaire.updated{{$timestamp}}@example.com\",\n  \"telephone\": \"0600000000\",\n  \"ville\": \"Agadir\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/stagiaires/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "stagiaires",
+                    "1"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Absences",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const roleToken = pm.collectionVariables.get(\"gestionnaire_token\") || \"\";",
+                  "pm.collectionVariables.set(\"token\", roleToken);",
+                  "if (pm.environment) {",
+                  "  pm.environment.set(\"token\", roleToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "item": [
+            {
+              "name": "Liste des absences",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/absences",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "absences"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Detail absence 1",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/absences/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "absences",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Filtre absences par groupe",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/absences?groupe_id=1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "absences"
+                  ],
+                  "query": [
+                    {
+                      "key": "groupe_id",
+                      "value": "1"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Filtre absences par stagiaire",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/absences?stagiaire_id=6",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "absences"
+                  ],
+                  "query": [
+                    {
+                      "key": "stagiaire_id",
+                      "value": "6"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Filtre absences par type",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/absences?type=retard",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "absences"
+                  ],
+                  "query": [
+                    {
+                      "key": "type",
+                      "value": "retard"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Creer une absence",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"stagiaire_id\": 1,\n  \"groupe_id\": 1,\n  \"date_absence\": \"2030-01-15\",\n  \"periode\": \"matin\",\n  \"type\": \"absence\",\n  \"remarque\": \"Absence creee depuis Postman.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/absences",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "absences"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Autorisations",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const roleToken = pm.collectionVariables.get(\"gestionnaire_token\") || \"\";",
+                  "pm.collectionVariables.set(\"token\", roleToken);",
+                  "if (pm.environment) {",
+                  "  pm.environment.set(\"token\", roleToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "item": [
+            {
+              "name": "Liste des autorisations",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/autorisations",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "autorisations"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Detail autorisation 1",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/autorisations/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "autorisations",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Filtre autorisations en attente",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/autorisations?statut=en_attente",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "autorisations"
+                  ],
+                  "query": [
+                    {
+                      "key": "statut",
+                      "value": "en_attente"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Filtre autorisations non lues",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/autorisations?is_read=false",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "autorisations"
+                  ],
+                  "query": [
+                    {
+                      "key": "is_read",
+                      "value": "false"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Creer une autorisation",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"absence_id\": 68,\n  \"target_user_id\": 3,\n  \"motif\": \"Validation absence depuis Postman\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/gestionnaire/autorisations",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gestionnaire",
+                    "autorisations"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Directeur",
+      "description": "Endpoints reserves au directeur. Ce dossier recharge automatiquement le token de directeur.",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const roleToken = pm.collectionVariables.get(\"directeur_token\") || \"\";",
+              "pm.collectionVariables.set(\"token\", roleToken);",
+              "if (pm.environment) {",
+              "  pm.environment.set(\"token\", roleToken);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "Overview directeur",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/director/overview",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "director",
+                "overview"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Liste des utilisateurs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/director/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "director",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Detail utilisateur 3",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/director/users/3",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "director",
+                "users",
+                "3"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
