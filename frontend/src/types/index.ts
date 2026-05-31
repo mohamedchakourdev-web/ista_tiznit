@@ -197,6 +197,7 @@ export interface StoreUserPayload {
   email: string;
   password: string;
   role: UserRole;
+  type?: FormateurType | null;
 }
 
 export interface UpdateUserPayload {
@@ -205,6 +206,7 @@ export interface UpdateUserPayload {
   email?: string;
   password?: string;
   role?: UserRole;
+  type?: FormateurType | null;
 }
 
 export interface StoreFilierePayload {

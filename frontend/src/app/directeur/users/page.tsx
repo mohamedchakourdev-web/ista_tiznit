@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { Pencil, Plus, Trash2, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { directorService, getApiErrorMessage } from '@/services/api';
-import type { StoreUserPayload, UpdateUserPayload, User, UserRole } from '@/types';
+import type { StoreUserPayload, UpdateUserPayload, User, UserRole, FormateurType } from '@/types';
 import { PageHeader } from '@/components/shared/page-header';
 import { SearchInput } from '@/components/shared/search-input';
 import { Pagination } from '@/components/shared/pagination';
@@ -25,14 +25,22 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { getPrimaryRole, getRoleLabel, getUserFullName } from '@/utils/domain';
 
 const USER_ROLES = ['directeur', 'gestionnaire', 'formateur'] as const;
+const FORMATEUR_TYPES = ['permanent', 'vacataire'] as const;
 
-const schema = z.object({
-  nom: z.string().min(1, 'Nom requis'),
-  prenom: z.string().optional(),
-  email: z.string().min(1, 'Email requis').email('Email invalide'),
-  password: z.string().refine((value) => value === '' || value.length >= 8, 'Minimum 8 caracteres'),
-  role: z.enum(USER_ROLES),
-});
+const schema = z
+  .object({
+    nom: z.string().min(1, 'Nom requis'),
+    prenom: z.string().optional(),
+    email: z.string().min(1, 'Email requis').email('Email invalide'),
+    password: z.string().refine((value) => value === '' || value.length >= 8, 'Minimum 8 caracteres'),
+    role: z.enum(USER_ROLES),
+    type: z.enum(FORMATEUR_TYPES).optional().nullable(),
+  })
+  .superRefine((val, ctx) => {
+    if (val.role === 'formateur' && (val.type === undefined || val.type === null)) {
+      ctx.addIssue({ path: ['type'], code: z.ZodIssueCode.custom, message: 'Type formateur requis' });
+    }
+  });
 
 type FormValues = z.infer<typeof schema>;
 
@@ -42,6 +50,7 @@ const defaultValues: FormValues = {
   email: '',
   password: '',
   role: 'gestionnaire',
+  type: undefined,
 };
 
 export default function DirecteurUsersPage() {
@@ -66,6 +75,7 @@ export default function DirecteurUsersPage() {
   });
 
   const watchRole = watch('role');
+  const watchType = watch('type');
 
   const { data, isLoading } = useQuery({
     queryKey: ['director-users', page, search],
@@ -119,6 +129,7 @@ export default function DirecteurUsersPage() {
       email: user.email,
       password: '',
       role: getPrimaryRole(user) ?? 'gestionnaire',
+      type: (user.type ?? undefined) as FormValues['type'],
     });
     setOpen(true);
   };
@@ -144,12 +155,22 @@ export default function DirecteurUsersPage() {
         return;
       }
 
-      createMutation.mutate({ ...payload, password });
+      const createPayload: StoreUserPayload & { type?: FormateurType | null } = { ...payload, password };
+      if (values.role === 'formateur') createPayload.type = values.type ?? null;
+
+      createMutation.mutate(createPayload);
       return;
     }
 
     const updatePayload: UpdateUserPayload = { ...payload };
     if (password) updatePayload.password = password;
+
+    // Ensure type is sent: required for formateur, null otherwise to clear existing value
+    if (values.role === 'formateur') {
+      (updatePayload as UpdateUserPayload & { type?: FormateurType | null }).type = values.type ?? null;
+    } else {
+      (updatePayload as UpdateUserPayload & { type?: FormateurType | null }).type = null;
+    }
 
     updateMutation.mutate({ id: editing.id, payload: updatePayload });
   };
@@ -264,6 +285,22 @@ export default function DirecteurUsersPage() {
                 {errors.role && <p className="text-[12px] text-destructive">{errors.role.message}</p>}
               </div>
             </div>
+            {watchRole === 'formateur' && (
+              <div className="space-y-2">
+                <Label>Type Formateur</Label>
+                <Select value={watchType ?? ''} onValueChange={(value) => setValue('type', value as FormValues['type'], { shouldValidate: true })}>
+                  <SelectTrigger className="h-9 w-full rounded-lg border-border/50 bg-muted/30 text-[14px]">
+                    <SelectValue placeholder="Selectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FORMATEUR_TYPES.map((t) => (
+                      <SelectItem key={t} value={t}>{t === 'permanent' ? 'Permanent' : 'Vacataire'}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.type && <p className="text-[12px] text-destructive">{errors.type.message}</p>}
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Mot de passe</Label>
               <Input type="password" {...register('password')} className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]" />

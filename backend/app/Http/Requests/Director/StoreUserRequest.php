@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Director;
 
 use App\Http\Requests\ApiRequest;
+use App\Enums\FormateurTypeEnum;
 use Illuminate\Validation\Rule;
 
 /**
@@ -32,12 +33,15 @@ class StoreUserRequest extends ApiRequest
      */
     public function rules(): array
     {
+        $types = array_map(fn (FormateurTypeEnum $t) => $t->value, FormateurTypeEnum::cases());
+
         return [
             'nom' => ['required', 'string', 'max:100'],
             'prenom' => ['nullable', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
             'password' => ['required', 'string', 'min:8'],
             'role' => ['required', 'string', Rule::in(self::ALLOWED_ROLES)],
+            'type' => ['required_if:role,formateur', 'nullable', Rule::in($types)],
         ];
     }
 }
