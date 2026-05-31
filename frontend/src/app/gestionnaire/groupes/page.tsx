@@ -5,10 +5,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { BookOpen, MoreHorizontal, Pencil, Plus } from 'lucide-react';
+import { BookOpen, Check, ChevronsUpDown, MoreHorizontal, Pencil, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { filiereService, getApiErrorMessage, groupeService } from '@/services/api';
-import type { Groupe, StoreGroupePayload } from '@/types';
+import type { Groupe, StoreGroupePayload, User } from '@/types';
+import { cn } from '@/lib/utils';
 import { PageHeader } from '@/components/shared/page-header';
 import { SearchInput } from '@/components/shared/search-input';
 import { Pagination } from '@/components/shared/pagination';
@@ -20,7 +21,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getUserFullName } from '@/utils/domain';
 
 const schema = z.object({
   filiere_id: z.string().min(1, 'Filière requise'),
@@ -29,9 +32,14 @@ const schema = z.object({
   annee_formation: z.string().min(1, 'Année requise'),
   niveau: z.string().min(1, 'Niveau requis'),
   capacite: z.string().optional(),
+  formateur_ids: z.array(z.number()),
 });
 
 type FormValues = z.infer<typeof schema>;
+
+function getFormateurOptionLabel(formateur: User): string {
+  return getUserFullName(formateur) || formateur.email;
+}
 
 export default function GroupesPage() {
   const queryClient = useQueryClient();
@@ -43,10 +51,11 @@ export default function GroupesPage() {
 
   const { register, handleSubmit, reset, control, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { filiere_id: '', nom: '', code: '', annee_formation: '', niveau: '', capacite: '' },
+    defaultValues: { filiere_id: '', nom: '', code: '', annee_formation: '', niveau: '', capacite: '', formateur_ids: [] },
   });
 
   const watchFiliereId = useWatch({ control, name: 'filiere_id' });
+  const watchFormateurIds = useWatch({ control, name: 'formateur_ids' }) ?? [];
 
   const { data, isLoading } = useQuery({
     queryKey: ['groupes', page, search, filiereFilter],
@@ -57,6 +66,29 @@ export default function GroupesPage() {
     queryKey: ['filieres', 'options'],
     queryFn: () => filiereService.list({ per_page: 100 }),
   });
+
+  const { data: formateurs, isLoading: formateursLoading } = useQuery({
+    queryKey: ['formateurs', 'options'],
+    queryFn: () => groupeService.formateurs({ per_page: 100 }),
+  });
+
+  const formateurOptions = formateurs?.data ?? [];
+  const selectedFormateurs = watchFormateurIds
+    .map((id) => formateurOptions.find((formateur) => formateur.id === id) ?? editing?.formateurs?.find((formateur) => formateur.id === id))
+    .filter((formateur): formateur is User => Boolean(formateur));
+  const selectedFormateursLabel = selectedFormateurs.length === 0
+    ? 'Sélectionner les formateurs'
+    : selectedFormateurs.length <= 2
+      ? selectedFormateurs.map(getFormateurOptionLabel).join(', ')
+      : `${selectedFormateurs.slice(0, 2).map(getFormateurOptionLabel).join(', ')} +${selectedFormateurs.length - 2}`;
+
+  const toggleFormateur = (formateurId: number) => {
+    const nextIds = watchFormateurIds.includes(formateurId)
+      ? watchFormateurIds.filter((id) => id !== formateurId)
+      : [...watchFormateurIds, formateurId];
+
+    setValue('formateur_ids', nextIds, { shouldDirty: true, shouldValidate: true });
+  };
 
   const createMutation = useMutation({
     mutationFn: (payload: StoreGroupePayload) => groupeService.create(payload),
@@ -80,7 +112,7 @@ export default function GroupesPage() {
 
   const openCreate = () => {
     setEditing(null);
-    reset({ filiere_id: '', nom: '', code: '', annee_formation: '', niveau: '', capacite: '' });
+    reset({ filiere_id: '', nom: '', code: '', annee_formation: '', niveau: '', capacite: '', formateur_ids: [] });
     setOpen(true);
   };
 
@@ -93,6 +125,7 @@ export default function GroupesPage() {
       annee_formation: groupe.annee_formation,
       niveau: groupe.niveau,
       capacite: groupe.capacite ? String(groupe.capacite) : '',
+      formateur_ids: groupe.formateurs?.map((formateur) => formateur.id) ?? [],
     });
     setOpen(true);
   };
@@ -109,6 +142,7 @@ export default function GroupesPage() {
     annee_formation: values.annee_formation,
     niveau: values.niveau,
     capacite: values.capacite ? Number(values.capacite) : null,
+    formateur_ids: values.formateur_ids,
   });
 
   const onSubmit = (values: FormValues) => {
@@ -235,6 +269,66 @@ export default function GroupesPage() {
               <div className="space-y-2">
                 <Label>Capacité</Label>
                 <Input type="number" min={1} max={100} {...register('capacite')} className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]" />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Formateurs affectés</Label>
+                <Popover>
+                  <PopoverTrigger
+                    render={
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-9 w-full justify-between rounded-lg border-border/50 bg-muted/30 px-3 text-left text-[14px] font-normal hover:bg-muted/40"
+                      />
+                    }
+                  >
+                    <span className={cn('truncate', selectedFormateurs.length === 0 && 'text-muted-foreground')}>
+                      {selectedFormateursLabel}
+                    </span>
+                    <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
+                  </PopoverTrigger>
+                  <PopoverContent align="start" className="w-[560px] max-w-[calc(100vw-2rem)] p-1">
+                    <div className="max-h-56 overflow-y-auto">
+                      {formateursLoading ? (
+                        <div className="px-2 py-2 text-[13px] text-muted-foreground">Chargement...</div>
+                      ) : !formateurOptions.length ? (
+                        <div className="px-2 py-2 text-[13px] text-muted-foreground">Aucun formateur actif.</div>
+                      ) : (
+                        formateurOptions.map((formateur) => {
+                          const isSelected = watchFormateurIds.includes(formateur.id);
+
+                          return (
+                            <button
+                              key={formateur.id}
+                              type="button"
+                              onClick={() => toggleFormateur(formateur.id)}
+                              className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left outline-none transition-colors hover:bg-muted/60 focus:bg-muted/60"
+                            >
+                              <span
+                                className={cn(
+                                  'flex size-4 shrink-0 items-center justify-center rounded-[4px] border',
+                                  isSelected
+                                    ? 'border-primary bg-primary text-primary-foreground'
+                                    : 'border-input bg-background',
+                                )}
+                              >
+                                {isSelected && <Check className="size-3" />}
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block truncate text-[13px] font-medium text-foreground">
+                                  {getFormateurOptionLabel(formateur)}
+                                </span>
+                                <span className="block truncate text-[12px] text-muted-foreground">
+                                  {formateur.email}
+                                </span>
+                              </span>
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
             <DialogFooter>

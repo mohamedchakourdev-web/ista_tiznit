@@ -6,6 +6,7 @@ import type {
   QueryParams,
   StoreGroupePayload,
   UpdateGroupePayload,
+  User,
 } from '@/types';
 
 export const groupeService = {
@@ -17,6 +18,12 @@ export const groupeService = {
 
   get(id: number) {
     return apiClient.get<ApiResponse<Groupe>>(`/gestionnaire/groupes/${id}`).then((res) => res.data);
+  },
+
+  formateurs(params?: QueryParams) {
+    return apiClient
+      .get<ApiCollectionResponse<User>>('/gestionnaire/formateurs', { params })
+      .then((res) => res.data);
   },
 
   create(payload: StoreGroupePayload) {

@@ -71,8 +71,11 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
     Route::prefix('gestionnaire')
         ->middleware(['role:directeur|gestionnaire'])
         ->group(function (): void {
+            Route::get('/formateurs', [ManagementGroupeController::class, 'formateurs'])
+                ->middleware('permission:manage groupes');
+
             Route::prefix('filieres')
-                ->middleware(['role:gestionnaire', 'permission:manage filieres'])
+                ->middleware('permission:manage filieres')
                 ->group(function (): void {
                     Route::get('/', [FiliereController::class, 'index']);
                     Route::post('/', [FiliereController::class, 'store']);
@@ -95,6 +98,8 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
                         ->whereNumber('groupeId');
                     Route::patch('/{groupeId}', [ManagementGroupeController::class, 'update'])
                         ->whereNumber('groupeId');
+                    Route::delete('/{groupeId}', [ManagementGroupeController::class, 'destroy'])
+                        ->whereNumber('groupeId');
                 });
 
             Route::prefix('stagiaires')
@@ -102,8 +107,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
                 ->group(function (): void {
                     Route::get('/', [ManagementStagiaireController::class, 'index']);
                     Route::post('/', [ManagementStagiaireController::class, 'store']);
-                    Route::post('/import', [ManagementStagiaireController::class, 'import'])
-                        ->middleware('role:gestionnaire');
+                    Route::post('/import', [ManagementStagiaireController::class, 'import']);
                     Route::get('/{stagiaireId}', [ManagementStagiaireController::class, 'show'])
                         ->whereNumber('stagiaireId');
                     Route::patch('/{stagiaireId}', [ManagementStagiaireController::class, 'update'])
@@ -122,6 +126,8 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
                     Route::get('/', [ManagementAbsenceController::class, 'index']);
                     Route::post('/', [ManagementAbsenceController::class, 'store']);
                     Route::get('/{absenceId}', [ManagementAbsenceController::class, 'show'])
+                        ->whereNumber('absenceId');
+                    Route::patch('/{absenceId}', [ManagementAbsenceController::class, 'update'])
                         ->whereNumber('absenceId');
                 });
 

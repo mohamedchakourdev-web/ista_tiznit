@@ -8,7 +8,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Management\StoreGroupeRequest;
 use App\Http\Requests\Management\UpdateGroupeRequest;
 use App\Http\Resources\GroupeResource;
+use App\Http\Resources\UserResource;
 use App\Models\Groupe;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,7 +42,7 @@ class GroupeController extends Controller
 
             $query->where(function ($q) use ($search) {
                 $q->where('nom', 'like', $search)
-                  ->orWhere('code', 'like', $search);
+                    ->orWhere('code', 'like', $search);
             });
         }
 
@@ -49,6 +51,34 @@ class GroupeController extends Controller
         return $this->paginatedResponse(
             GroupeResource::collection($groupes),
             'Liste des groupes',
+        );
+    }
+
+    /**
+     * Liste des formateurs actifs disponibles pour les groupes.
+     */
+    public function formateurs(Request $request): JsonResponse
+    {
+        $query = User::role('formateur')
+            ->where('is_active', true)
+            ->orderBy('nom')
+            ->orderBy('prenom');
+
+        if ($request->search) {
+            $search = '%'.trim((string) $request->search).'%';
+
+            $query->where(function ($q) use ($search): void {
+                $q->where('nom', 'like', $search)
+                    ->orWhere('prenom', 'like', $search)
+                    ->orWhere('email', 'like', $search);
+            });
+        }
+
+        $formateurs = $query->paginate($this->perPage($request));
+
+        return $this->paginatedResponse(
+            UserResource::collection($formateurs),
+            'Liste des formateurs',
         );
     }
 
@@ -81,7 +111,7 @@ class GroupeController extends Controller
         $formateurIds = [];
 
         if (! empty($data['formateur_ids'])) {
-            foreach ($data['formateur_ids'] as $formateurId) {
+            foreach ($data['formateur_ids'] ?? [] as $formateurId) {
                 $formateurIds[] = (int) $formateurId;
             }
         }
@@ -126,7 +156,7 @@ class GroupeController extends Controller
         if (array_key_exists('formateur_ids', $data)) {
             $shouldSyncFormateurs = true;
 
-            foreach ($data['formateur_ids'] as $formateurId) {
+            foreach ($data['formateur_ids'] ?? [] as $formateurId) {
                 $formateurIds[] = (int) $formateurId;
             }
         }
@@ -162,12 +192,26 @@ class GroupeController extends Controller
     }
 
     /**
-     * @param list<int> $formateurIds
+     * Supprimer un groupe.
      */
+    public function destroy(int $groupeId): JsonResponse
+    {
+        $user = auth()->user();
+
+        $groupe = Groupe::findOrFail($groupeId);
+        $groupe->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Groupe supprime',
+            'data' => (object) [],
+        ]);
+    }
+
     /**
      * Synchroniser les formateurs du groupe.
      *
-     * @param list<int> $formateurIds
+     * @param  list<int>  $formateurIds
      */
     private function syncFormateurs(Groupe $groupe, array $formateurIds): void
     {

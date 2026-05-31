@@ -60,14 +60,15 @@ class FiliereCrudTest extends TestCase
         ]);
     }
 
-    public function test_directeur_cannot_access_gestionnaire_filieres(): void
+    public function test_directeur_can_access_gestionnaire_filieres(): void
     {
         $this->actingAsDirector();
 
         Filiere::factory()->create();
 
         $this->getJson('/api/gestionnaire/filieres')
-            ->assertForbidden();
+            ->assertOk()
+            ->assertJsonPath('success', true);
     }
 
     private function actingAsGestionnaire(): User

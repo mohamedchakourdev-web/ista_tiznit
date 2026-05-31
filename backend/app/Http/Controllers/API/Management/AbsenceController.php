@@ -6,6 +6,7 @@ namespace App\Http\Controllers\API\Management;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Management\StoreAbsenceRequest;
+use App\Http\Requests\Management\UpdateAbsenceRequest;
 use App\Http\Resources\AbsenceResource;
 use App\Models\Absence;
 use App\Models\Notification;
@@ -174,5 +175,42 @@ class AbsenceController extends Controller
             'message' => 'Absence created successfully.',
             'data' => new AbsenceResource($absence),
         ], 201);
+    }
+
+    /**
+     * Mettre a jour une absence.
+     */
+    public function update(UpdateAbsenceRequest $request, int $absenceId): JsonResponse
+    {
+        $user = auth()->user();
+
+        $data = $request->validated();
+
+        if (array_key_exists('stagiaire_id', $data)) {
+            $stagiaire = Stagiaire::query()->findOrFail((int) $data['stagiaire_id']);
+            $data['groupe_id'] = $stagiaire->groupe_id;
+        }
+
+        if (($data['type'] ?? null) === 'absence') {
+            $data['minutes_retard'] = null;
+        }
+
+        $data['updated_by'] = $user->id;
+
+        $absence = Absence::query()->findOrFail($absenceId);
+        $absence->update($data);
+        $absence->refresh();
+        $absence->load([
+            'stagiaire.groupe.filiere',
+            'groupe.formateurs',
+            'autorisation.targetUser',
+            'autorisation.validatedByUser',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Absence mise a jour',
+            'data' => new AbsenceResource($absence),
+        ]);
     }
 }
