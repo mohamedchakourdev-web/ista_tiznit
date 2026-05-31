@@ -2,11 +2,64 @@
 
 import * as React from "react"
 import { Select as SelectPrimitive } from "@base-ui/react/select"
+import type { SelectRootProps } from "@base-ui/react/select"
 
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
-const Select = SelectPrimitive.Root
+type SelectItemOption = {
+  label: React.ReactNode
+  value: unknown
+}
+
+type SelectElementProps = {
+  children?: React.ReactNode
+  value?: unknown
+}
+
+function collectSelectItems(children: React.ReactNode, items: SelectItemOption[] = []) {
+  React.Children.forEach(children, (child) => {
+    if (!React.isValidElement<SelectElementProps>(child)) return
+
+    const childProps = child.props
+
+    if ("value" in childProps) {
+      items.push({
+        label: childProps.children ?? String(childProps.value ?? ""),
+        value: childProps.value,
+      })
+      return
+    }
+
+    if (childProps.children) {
+      collectSelectItems(childProps.children, items)
+    }
+  })
+
+  return items
+}
+
+function Select<Value, Multiple extends boolean | undefined = false>({
+  children,
+  items,
+  ...props
+}: SelectRootProps<Value, Multiple>) {
+  const derivedItems = React.useMemo(() => {
+    if (items) return items
+
+    const collectedItems = collectSelectItems(children)
+    return collectedItems.length ? collectedItems : undefined
+  }, [children, items])
+
+  return (
+    <SelectPrimitive.Root<Value, Multiple>
+      items={derivedItems as SelectRootProps<Value, Multiple>["items"]}
+      {...props}
+    >
+      {children}
+    </SelectPrimitive.Root>
+  )
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (
@@ -22,7 +75,7 @@ function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
   return (
     <SelectPrimitive.Value
       data-slot="select-value"
-      className={cn("flex flex-1 text-left", className)}
+      className={cn("flex min-w-0 flex-1 text-left", className)}
       {...props}
     />
   )
@@ -117,12 +170,15 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-default items-center gap-1.5 rounded-md py-1 pr-8 pl-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
+        "relative flex w-full min-w-0 cursor-default items-center gap-1.5 rounded-md py-1 pr-8 pl-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
         className
       )}
       {...props}
     >
-      <SelectPrimitive.ItemText className="flex flex-1 shrink-0 gap-2 whitespace-nowrap">
+      <SelectPrimitive.ItemText
+        data-slot="select-item-text"
+        className="flex min-w-0 flex-1 gap-2 whitespace-normal break-words"
+      >
         {children}
       </SelectPrimitive.ItemText>
       <SelectPrimitive.ItemIndicator

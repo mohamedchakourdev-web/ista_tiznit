@@ -112,6 +112,8 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
                         ->whereNumber('stagiaireId');
                     Route::patch('/{stagiaireId}', [ManagementStagiaireController::class, 'update'])
                         ->whereNumber('stagiaireId');
+                    Route::delete('/{stagiaireId}', [ManagementStagiaireController::class, 'destroy'])
+                        ->whereNumber('stagiaireId');
                 });
 
             Route::prefix('diplome-types')

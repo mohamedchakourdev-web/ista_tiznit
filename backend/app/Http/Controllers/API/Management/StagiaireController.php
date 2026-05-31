@@ -127,4 +127,25 @@ class StagiaireController extends Controller
             'data' => new StagiaireResource($stagiaire),
         ]);
     }
+
+    /**
+     * Supprimer (soft delete) un stagiaire.
+     */
+    public function destroy(int $stagiaireId): JsonResponse
+    {
+        $user = auth()->user();
+
+        $stagiaire = Stagiaire::findOrFail($stagiaireId);
+
+        // Enregistrer qui supprime puis soft-delete
+        $stagiaire->deleted_by = $user->id;
+        $stagiaire->save();
+
+        $stagiaire->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Stagiaire supprimé',
+        ]);
+    }
 }

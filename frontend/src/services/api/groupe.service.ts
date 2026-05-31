@@ -33,4 +33,8 @@ export const groupeService = {
   update(id: number, payload: UpdateGroupePayload) {
     return apiClient.patch<ApiResponse<Groupe>>(`/gestionnaire/groupes/${id}`, payload).then((res) => res.data);
   },
+  
+  delete(id: number) {
+    return apiClient.delete<ApiResponse<Record<string, never>>>(`/gestionnaire/groupes/${id}`).then((res) => res.data);
+  },
 };

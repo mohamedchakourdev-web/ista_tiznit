@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/shared/empty-state';
 import { AutorisationStatusBadge, ReadStatusBadge } from '@/components/shared/status-badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { getStagiaireFullName } from '@/utils/domain';
+import { getGroupeFiliereName, getStagiaireFullName } from '@/utils/domain';
 
 export default function FormateurDashboard() {
   const { data: groupes, isLoading: groupesLoading } = useQuery({
@@ -99,7 +99,7 @@ export default function FormateurDashboard() {
                   <div className="group flex items-center justify-between rounded-xl border border-border/50 bg-card px-5 py-4 transition-all hover:border-border/70 hover:bg-muted/30">
                     <div>
                       <p className="text-[14px] font-semibold text-foreground">{groupe.nom}</p>
-                      <p className="mt-1 text-[12px] text-muted-foreground">{groupe.filiere?.nom}</p>
+                      <p className="mt-1 text-[12px] leading-snug text-muted-foreground">{getGroupeFiliereName(groupe)}</p>
                     </div>
                     <div className="flex items-center gap-4">
                       <Badge variant="outline" className="gap-2 rounded-lg border-border/50 bg-muted/50 px-2.5 py-1 text-[12px] text-muted-foreground">

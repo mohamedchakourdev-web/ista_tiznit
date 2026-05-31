@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { GraduationCap, MoreHorizontal, Pencil, Plus, Upload } from 'lucide-react';
+import { GraduationCap, MoreHorizontal, Pencil, Plus, Upload, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   diplomeService,
@@ -19,6 +19,7 @@ import { SearchInput } from '@/components/shared/search-input';
 import { Pagination } from '@/components/shared/pagination';
 import { EmptyState } from '@/components/shared/empty-state';
 import { TableSkeleton } from '@/components/shared/loading-skeleton';
+import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -84,6 +85,7 @@ export default function StagiairesPage() {
   const [groupeFilter, setGroupeFilter] = useState('');
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Stagiaire | null>(null);
+  const [deleting, setDeleting] = useState<Stagiaire | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -147,6 +149,16 @@ export default function StagiairesPage() {
       setUploadProgress(100);
     },
     onError: (error) => toast.error(getApiErrorMessage(error, 'Erreur lors de l import.')),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => stagiaireService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stagiaires'] });
+      toast.success('Stagiaire supprimé.');
+      setDeleting(null);
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error, 'Impossible de supprimer le stagiaire.')),
   });
 
   const openCreate = () => {
@@ -262,6 +274,10 @@ export default function StagiairesPage() {
                         <DropdownMenuItem onClick={() => openEdit(stagiaire)} className="gap-2 text-[13px]">
                           <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                           Modifier
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setDeleting(stagiaire)} className="gap-2 text-[13px] text-destructive focus:text-destructive">
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Supprimer
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -421,6 +437,16 @@ export default function StagiairesPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleting}
+        onOpenChange={(value) => { if (!value) setDeleting(null); }}
+        onConfirm={() => { if (deleting) deleteMutation.mutate(deleting.id); }}
+        title="Supprimer le stagiaire"
+        description="Voulez-vous vraiment supprimer ce stagiaire ?\nCette action est irréversible."
+        confirmLabel="Supprimer"
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }

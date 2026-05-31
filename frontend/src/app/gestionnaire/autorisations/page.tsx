@@ -52,6 +52,7 @@ export default function AutorisationsPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [statutFilter, setStatutFilter] = useState('');
+  const [search, setSearch] = useState('');
   const [stagiaireSearch, setStagiaireSearch] = useState('');
   const [open, setOpen] = useState(false);
 
@@ -65,11 +66,12 @@ export default function AutorisationsPage() {
   const watchStatut = useWatch({ control, name: 'statut' });
 
   const { data, isLoading } = useQuery({
-    queryKey: ['autorisations', page, statutFilter],
+    queryKey: ['autorisations', page, statutFilter, search],
     queryFn: () => autorisationService.list({
       page,
       per_page: 10,
       statut: statutFilter || undefined,
+      search: search || undefined,
     }),
   });
 
@@ -123,17 +125,25 @@ export default function AutorisationsPage() {
         </Button>
       </PageHeader>
 
-      <Select value={statutFilter} onValueChange={(value) => { setStatutFilter(value && value !== 'all' ? value : ''); setPage(1); }}>
-        <SelectTrigger className="h-9 w-full rounded-lg border-border/50 bg-muted/30 text-[14px] sm:w-48">
-          <SelectValue placeholder="Tous statuts" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Tous</SelectItem>
-          <SelectItem value="en_attente">En attente</SelectItem>
-          <SelectItem value="validee">Acceptee</SelectItem>
-          <SelectItem value="refusee">Refusee</SelectItem>
-        </SelectContent>
-      </Select>
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <SearchInput
+          value={search}
+          onChange={(value) => { setSearch(value); setPage(1); }}
+          placeholder="Rechercher par CEF, nom, groupe ou code..."
+          className="w-full sm:w-80"
+        />
+        <Select value={statutFilter} onValueChange={(value) => { setStatutFilter(value && value !== 'all' ? value : ''); setPage(1); }}>
+          <SelectTrigger className="h-9 w-full rounded-lg border-border/50 bg-muted/30 text-[14px] sm:w-48">
+            <SelectValue placeholder="Tous statuts" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous</SelectItem>
+            <SelectItem value="en_attente">En attente</SelectItem>
+            <SelectItem value="validee">Acceptee</SelectItem>
+            <SelectItem value="refusee">Refusee</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {isLoading ? (
         <TableSkeleton columns={7} />

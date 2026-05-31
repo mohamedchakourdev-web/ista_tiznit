@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { BookOpen, Check, ChevronsUpDown, MoreHorizontal, Pencil, Plus } from 'lucide-react';
+import { BookOpen, Check, ChevronsUpDown, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { filiereService, getApiErrorMessage, groupeService } from '@/services/api';
 import type { Groupe, StoreGroupePayload, User } from '@/types';
@@ -15,15 +15,16 @@ import { SearchInput } from '@/components/shared/search-input';
 import { Pagination } from '@/components/shared/pagination';
 import { EmptyState } from '@/components/shared/empty-state';
 import { TableSkeleton } from '@/components/shared/loading-skeleton';
+import { ConfirmDialog } from '@/components/shared/confirm-dialog';
+import { FiliereSelect } from '@/components/shared/filiere-select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getUserFullName } from '@/utils/domain';
+import { getGroupeFiliereName, getUserFullName } from '@/utils/domain';
 
 const schema = z.object({
   filiere_id: z.string().min(1, 'Filière requise'),
@@ -48,6 +49,7 @@ export default function GroupesPage() {
   const [filiereFilter, setFiliereFilter] = useState('');
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Groupe | null>(null);
+  const [deleting, setDeleting] = useState<Groupe | null>(null);
 
   const { register, handleSubmit, reset, control, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -66,6 +68,7 @@ export default function GroupesPage() {
     queryKey: ['filieres', 'options'],
     queryFn: () => filiereService.list({ per_page: 100 }),
   });
+  const filiereOptions = filieres?.data ?? [];
 
   const { data: formateurs, isLoading: formateursLoading } = useQuery({
     queryKey: ['formateurs', 'options'],
@@ -108,6 +111,16 @@ export default function GroupesPage() {
       closeDialog();
     },
     onError: (error) => toast.error(getApiErrorMessage(error, 'Impossible de modifier le groupe.')),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => groupeService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groupes'] });
+      toast.success('Groupe supprimé.');
+      setDeleting(null);
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error, 'Impossible de supprimer le groupe.')),
   });
 
   const openCreate = () => {
@@ -164,17 +177,15 @@ export default function GroupesPage() {
 
       <div className="flex flex-col sm:flex-row gap-3">
         <SearchInput value={search} onChange={(value) => { setSearch(value); setPage(1); }} className="w-full sm:w-80" />
-        <Select value={filiereFilter} onValueChange={(value) => { setFiliereFilter(value && value !== 'all' ? value : ''); setPage(1); }}>
-          <SelectTrigger className="w-full sm:w-[220px] h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]">
-            <SelectValue placeholder="Toutes filières" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Toutes filières</SelectItem>
-            {filieres?.data.map((filiere) => (
-              <SelectItem key={filiere.id} value={String(filiere.id)}>{filiere.nom}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <FiliereSelect
+          filieres={filiereOptions}
+          value={filiereFilter}
+          onValueChange={(value) => { setFiliereFilter(value && value !== 'all' ? value : ''); setPage(1); }}
+          placeholder="Toutes filières"
+          includeAll
+          allLabel="Toutes filières"
+          className="sm:w-[360px]"
+        />
       </div>
 
       {isLoading ? (
@@ -200,7 +211,7 @@ export default function GroupesPage() {
                 <TableRow key={groupe.id} className="hover:bg-muted/30 border-b border-border/30 last:border-0 transition-colors duration-150">
                   <TableCell className="text-[14px] font-medium text-foreground px-5 py-3">{groupe.nom}</TableCell>
                   <TableCell className="text-[14px] text-muted-foreground px-5 py-3">{groupe.code}</TableCell>
-                  <TableCell className="text-[14px] text-muted-foreground px-5 py-3">{groupe.filiere?.nom ?? '—'}</TableCell>
+                  <TableCell className="min-w-[240px] whitespace-normal break-words text-[14px] text-muted-foreground px-5 py-3">{getGroupeFiliereName(groupe)}</TableCell>
                   <TableCell className="text-[14px] text-muted-foreground px-5 py-3">{groupe.annee_formation}</TableCell>
                   <TableCell className="text-[14px] text-muted-foreground px-5 py-3">{groupe.niveau}</TableCell>
                   <TableCell className="text-[14px] text-muted-foreground px-5 py-3">{groupe.stagiaires_count ?? '—'}</TableCell>
@@ -213,6 +224,10 @@ export default function GroupesPage() {
                         <DropdownMenuItem onClick={() => openEdit(groupe)} className="text-[13px] gap-2">
                           <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                           Modifier
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setDeleting(groupe)} className="text-[13px] gap-2 text-destructive focus:text-destructive">
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Supprimer
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -244,16 +259,12 @@ export default function GroupesPage() {
               </div>
               <div className="space-y-2">
                 <Label>Filière</Label>
-                <Select value={watchFiliereId} onValueChange={(value) => setValue('filiere_id', value || '')}>
-                  <SelectTrigger className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filieres?.data.map((filiere) => (
-                      <SelectItem key={filiere.id} value={String(filiere.id)}>{filiere.nom}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FiliereSelect
+                  filieres={filiereOptions}
+                  value={watchFiliereId}
+                  onValueChange={(value) => setValue('filiere_id', value || '', { shouldDirty: true, shouldValidate: true })}
+                  placeholder="Sélectionner"
+                />
                 {errors.filiere_id && <p className="text-[12px] text-destructive">{errors.filiere_id.message}</p>}
               </div>
               <div className="space-y-2">
@@ -340,6 +351,16 @@ export default function GroupesPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleting}
+        onOpenChange={(value) => { if (!value) setDeleting(null); }}
+        onConfirm={() => { if (deleting) deleteMutation.mutate(deleting.id); }}
+        title="Supprimer le groupe"
+        description="Voulez-vous vraiment supprimer ce groupe ? Cette action est irréversible."
+        confirmLabel="Supprimer"
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }

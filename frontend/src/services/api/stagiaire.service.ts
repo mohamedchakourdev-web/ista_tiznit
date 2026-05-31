@@ -41,4 +41,8 @@ export const stagiaireService = {
       })
       .then((res) => res.data);
   },
+  
+  delete(id: number) {
+    return apiClient.delete<ApiResponse<never>>(`/gestionnaire/stagiaires/${id}`).then((res) => res.data);
+  },
 };

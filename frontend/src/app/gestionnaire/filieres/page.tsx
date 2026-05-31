@@ -22,6 +22,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getFiliereName } from '@/utils/domain';
 
 const schema = z.object({
   nom: z.string().min(1, 'Nom requis'),
@@ -137,7 +138,7 @@ export default function FilieresPage() {
             <TableBody>
               {data.data.map((filiere) => (
                 <TableRow key={filiere.id} className="hover:bg-muted/30 border-b border-border/30 last:border-0 transition-colors duration-150">
-                  <TableCell className="text-[14px] font-medium text-foreground px-5 py-3">{filiere.nom}</TableCell>
+                  <TableCell className="min-w-[260px] whitespace-normal break-words text-[14px] font-medium leading-snug text-foreground px-5 py-3">{getFiliereName(filiere)}</TableCell>
                   <TableCell className="text-[14px] text-muted-foreground px-5 py-3">{filiere.code}</TableCell>
                   <TableCell className="text-[14px] text-muted-foreground px-5 py-3">{filiere.description ?? '—'}</TableCell>
                   <TableCell className="text-[14px] text-muted-foreground px-5 py-3">{filiere.groupes_count ?? '—'}</TableCell>
@@ -203,7 +204,7 @@ export default function FilieresPage() {
         onOpenChange={(value) => { if (!value) setDeleting(null); }}
         onConfirm={() => { if (deleting) deleteMutation.mutate(deleting.id); }}
         title="Supprimer la filière"
-        description="Voulez-vous vraiment supprimer cette filière ?"
+        description={`Voulez-vous vraiment supprimer la filière ${getFiliereName(deleting)} ?`}
         confirmLabel="Supprimer"
         loading={deleteMutation.isPending}
       />

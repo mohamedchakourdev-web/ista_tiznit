@@ -1,4 +1,4 @@
-import type { Absence, AutorisationStatut, Periode, User, UserRole } from '@/types';
+import type { Absence, AutorisationStatut, Filiere, Groupe, Periode, User, UserRole } from '@/types';
 
 export function getPrimaryRole(user?: User | null): UserRole | null {
   const roles = user?.roles ?? [];
@@ -55,6 +55,14 @@ export function getAutorisationStatutLabel(statut?: AutorisationStatut | null): 
 export function getStagiaireFullName(stagiaire?: { nom?: string; prenom?: string } | null): string {
   if (!stagiaire) return '-';
   return [stagiaire.prenom, stagiaire.nom].filter(Boolean).join(' ').trim() || '-';
+}
+
+export function getFiliereName(filiere?: Pick<Filiere, 'nom'> | null): string {
+  return filiere?.nom?.trim() || 'Filière non renseignée';
+}
+
+export function getGroupeFiliereName(groupe?: Pick<Groupe, 'filiere'> | null): string {
+  return getFiliereName(groupe?.filiere);
 }
 
 export function describeAbsence(absence?: Absence | null): string {

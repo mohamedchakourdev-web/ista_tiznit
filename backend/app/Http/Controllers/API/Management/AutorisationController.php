@@ -44,6 +44,41 @@ class AutorisationController extends Controller
             $query->where('is_read', $isRead);
         }
 
+        // Recherche texte libre
+        $term = trim((string) $request->search);
+
+        if ($term !== '') {
+            $search = '%'.$term.'%';
+
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'like', $search)
+                    ->orWhereHas('stagiaire', function ($stagiaireQuery) use ($search) {
+                        $stagiaireQuery->where('nom', 'like', $search)
+                            ->orWhere('prenom', 'like', $search)
+                            ->orWhere('cef', 'like', $search)
+                            ->orWhere(DB::raw("concat(nom, ' ', prenom)"), 'like', $search);
+                    })
+                    ->orWhereHas('absence.stagiaire', function ($stagiaireQuery) use ($search) {
+                        $stagiaireQuery->where('nom', 'like', $search)
+                            ->orWhere('prenom', 'like', $search)
+                            ->orWhere('cef', 'like', $search)
+                            ->orWhere(DB::raw("concat(nom, ' ', prenom)"), 'like', $search);
+                    })
+                    ->orWhereHas('absence.groupe', function ($groupeQuery) use ($search) {
+                        $groupeQuery->where('nom', 'like', $search)
+                            ->orWhere('code', 'like', $search);
+                    })
+                    ->orWhereHas('stagiaire.groupe', function ($groupeQuery) use ($search) {
+                        $groupeQuery->where('nom', 'like', $search)
+                            ->orWhere('code', 'like', $search);
+                    })
+                    ->orWhereHas('targetUser', function ($userQuery) use ($search) {
+                        $userQuery->where('nom', 'like', $search)
+                            ->orWhere('prenom', 'like', $search);
+                    });
+            });
+        }
+
         $autorisations = $query->paginate($this->perPage($request));
 
         return $this->paginatedResponse(

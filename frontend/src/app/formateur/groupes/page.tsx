@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getStagiaireFullName } from '@/utils/domain';
+import { getGroupeFiliereName, getStagiaireFullName } from '@/utils/domain';
 
 export default function FormateurGroupesPage() {
   const groupeIdFromUrl = Number(new URLSearchParams(window.location.search).get('groupe'));
@@ -57,7 +57,7 @@ export default function FormateurGroupesPage() {
             >
               <div>
                 <p className={`text-[13px] font-medium ${selectedGroupe === groupe.id ? 'text-primary' : 'text-foreground'}`}>{groupe.nom}</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">{groupe.filiere?.nom}</p>
+                <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{getGroupeFiliereName(groupe)}</p>
               </div>
               <div className="flex items-center gap-2.5">
                 <Badge variant="outline" className={`gap-1 rounded-md text-[10px] ${selectedGroupe === groupe.id ? 'border-primary/20 bg-primary/10 text-primary' : 'border-border/40 bg-muted/50 text-muted-foreground'}`}>
