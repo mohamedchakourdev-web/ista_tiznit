@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\API\Auth\AuthController;
+use App\Http\Controllers\API\Auth\ProfileController;
 use App\Http\Controllers\API\Director\OverviewController;
 use App\Http\Controllers\API\Director\UserController;
 use App\Http\Controllers\API\Formateur\AbsenceController as FormateurAbsenceController;
@@ -28,6 +29,11 @@ Route::prefix('auth')->group(function (): void {
 });
 
 Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::put('/profile/avatar', [ProfileController::class, 'avatar']);
+    Route::put('/profile/password', [ProfileController::class, 'password']);
+
     Route::prefix('notifications')->group(function (): void {
         Route::get('/', [NotificationController::class, 'index']);
         Route::get('/unread', [NotificationController::class, 'unread']);

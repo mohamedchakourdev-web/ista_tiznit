@@ -7,6 +7,7 @@ namespace App\Http\Resources;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Str;
 
 /**
  * @mixin User
@@ -26,7 +27,7 @@ class UserResource extends JsonResource
             'prenom' => $this->prenom,
             'email' => $this->email,
             'telephone' => $this->telephone,
-            'avatar' => $this->avatar,
+            'avatar' => $this->avatarUrl(),
             'type' => $this->type?->value,
             'is_active' => $this->is_active,
             'last_login_at' => $this->last_login_at?->toIso8601String(),
@@ -42,5 +43,22 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
+    }
+
+    private function avatarUrl(): ?string
+    {
+        if ($this->avatar === null || $this->avatar === '') {
+            return null;
+        }
+
+        if (Str::startsWith($this->avatar, ['http://', 'https://', 'data:'])) {
+            return $this->avatar;
+        }
+
+        if (Str::startsWith($this->avatar, '/')) {
+            return $this->avatar;
+        }
+
+        return '/storage/'.$this->avatar;
     }
 }

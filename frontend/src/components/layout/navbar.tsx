@@ -1,11 +1,13 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Bell, CheckCheck } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Bell, CheckCheck, LogOut, UserRound } from 'lucide-react';
 import { toast } from 'sonner';
 import { MobileSidebar } from './sidebar';
-import { notificationService } from '@/services/api';
+import { authService, notificationService } from '@/services/api';
 import { useAuthStore } from '@/store/auth.store';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -14,12 +16,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { compactDateTime, getInitials, getPrimaryRole, getRoleLabel, getUserFullName } from '@/utils/domain';
+import { compactDateTime, getAvatarUrl, getInitials, getPrimaryRole, getRoleLabel, getUserFullName } from '@/utils/domain';
 
 export function Navbar() {
+  const router = useRouter();
   const queryClient = useQueryClient();
-  const { user } = useAuthStore();
+  const { user, clearAuth } = useAuthStore();
   const role = getPrimaryRole(user);
+  const roleLabel = getRoleLabel(role);
+  const fullName = getUserFullName(user);
+  const avatarUrl = getAvatarUrl(user);
 
   const { data: unread } = useQuery({
     queryKey: ['notifications', 'unread'],
@@ -51,6 +57,17 @@ export function Navbar() {
     },
     onError: () => toast.error('Impossible de marquer les notifications.'),
   });
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch {
+      // The local session must still be cleared if the API token is already invalid.
+    }
+
+    clearAuth();
+    router.push('/login');
+  };
 
   return (
     <header className="sticky top-0 z-30 flex h-[56px] items-center justify-between border-b border-border/40 bg-white/80 backdrop-blur-xl px-5 lg:px-8">
@@ -131,14 +148,45 @@ export function Navbar() {
         {user && (
           <div className="flex items-center gap-2.5 pl-1">
             <div className="hidden sm:block text-right">
-              <p className="text-[13px] font-medium text-foreground leading-tight">{getUserFullName(user)}</p>
+              <p className="text-[13px] font-medium text-foreground leading-tight">{fullName}</p>
               <p className="text-[11px] text-muted-foreground/60 leading-tight mt-[1px]">
-                {getRoleLabel(role)}
+                {roleLabel}
               </p>
             </div>
-            <div className="flex h-[32px] w-[32px] items-center justify-center rounded-lg bg-[#0F172A] text-[11px] font-semibold text-white">
-              {getInitials(user)}
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className="flex h-[34px] w-[34px] items-center justify-center rounded-lg outline-none ring-offset-background transition-all duration-200 hover:ring-2 hover:ring-primary/20 focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label="Menu utilisateur"
+              >
+                <Avatar className="h-[34px] w-[34px] rounded-lg after:rounded-lg" size="default">
+                  {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} className="rounded-lg" />}
+                  <AvatarFallback className="rounded-lg bg-[#0F172A] text-[11px] font-semibold text-white">
+                    {getInitials(user)}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" sideOffset={8} className="w-64 rounded-xl border-border/50 p-1.5 shadow-lg">
+                <div className="px-3 py-2.5">
+                  <p className="truncate text-[14px] font-semibold text-foreground">{fullName}</p>
+                  <p className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                    ROLE : {roleLabel}
+                  </p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push('/profile')} className="gap-2.5 px-3 py-2 text-[13px]">
+                  <UserRound className="h-4 w-4 text-muted-foreground" />
+                  Mon profil
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => void handleLogout()}
+                  className="gap-2.5 px-3 py-2 text-[13px] text-destructive focus:text-destructive"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Deconnexion
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
       </div>

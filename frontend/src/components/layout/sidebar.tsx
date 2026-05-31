@@ -2,14 +2,13 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
-import { authService } from '@/services/api';
 import {
   LayoutDashboard, Users, BookOpen, GraduationCap, FolderOpen,
-  AlertTriangle, FileCheck, LogOut,
-  ChevronLeft, ChevronRight, Menu, X, ChevronsUpDown,
+  AlertTriangle, FileCheck,
+  ChevronLeft, ChevronRight, Menu, X,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
@@ -50,16 +49,9 @@ const navConfig: Record<string, NavItem[]> = {
 
 function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const { user, clearAuth } = useAuthStore();
+  const { user } = useAuthStore();
   const role = getPrimaryRole(user) || 'gestionnaire';
   const items = navConfig[role] || navConfig.gestionnaire;
-
-  const handleLogout = async () => {
-    try { await authService.logout(); } catch { /* ignore */ }
-    clearAuth();
-    router.push('/login');
-  };
 
   const sections = items.reduce<Record<string, NavItem[]>>((acc, item) => {
     const section = item.section || 'Général';
@@ -221,15 +213,6 @@ function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; onNavig
                 </TooltipContent>
               </Tooltip>
             )}
-            <Tooltip>
-              <TooltipTrigger
-                onClick={handleLogout}
-                className="flex h-10 w-10 items-center justify-center rounded-[10px] text-slate-500 hover:bg-red-500/10 hover:text-red-400 transition-all duration-200 border-none bg-transparent cursor-pointer"
-              >
-                <LogOut className="h-[16px] w-[16px]" />
-              </TooltipTrigger>
-              <TooltipContent side="right" sideOffset={10} className="text-[12px] font-medium bg-[#1E293B] text-white border-white/10 shadow-2xl">Déconnexion</TooltipContent>
-            </Tooltip>
           </div>
         ) : (
           <>
@@ -246,16 +229,8 @@ function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; onNavig
                     {getRoleLabel(getPrimaryRole(user)) || user.email}
                   </p>
                 </div>
-                <ChevronsUpDown className="h-3.5 w-3.5 text-slate-600 shrink-0" />
               </div>
             )}
-            <button
-              onClick={handleLogout}
-              className="flex w-full items-center gap-2.5 rounded-[10px] px-3 py-2 text-[13px] font-medium text-slate-500 hover:bg-red-500/8 hover:text-red-400 transition-all duration-200"
-            >
-              <LogOut className="h-[15px] w-[15px] shrink-0" />
-              <span>Déconnexion</span>
-            </button>
           </>
         )}
       </div>

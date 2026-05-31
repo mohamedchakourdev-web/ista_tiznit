@@ -1,4 +1,4 @@
-import type { Absence, AutorisationStatut, Filiere, Groupe, Periode, User, UserRole } from '@/types';
+import type { Absence, AutorisationStatut, Filiere, FormateurType, Groupe, Periode, User, UserRole } from '@/types';
 
 export function getPrimaryRole(user?: User | null): UserRole | null {
   const roles = user?.roles ?? [];
@@ -19,6 +19,21 @@ export function getInitials(user?: Pick<User, 'nom' | 'prenom'> | null): string 
   return `${prenom}${nom}`.trim().toUpperCase() || 'U';
 }
 
+export function getAvatarUrl(user?: Pick<User, 'avatar'> | null): string | null {
+  const avatar = user?.avatar?.trim();
+  if (!avatar) return null;
+
+  if (/^(https?:|data:|blob:)/.test(avatar)) {
+    return avatar;
+  }
+
+  if (avatar.startsWith('/')) {
+    return avatar;
+  }
+
+  return `/storage/${avatar}`;
+}
+
 export function getRoleLabel(role?: UserRole | null): string {
   const labels: Record<UserRole, string> = {
     directeur: 'Directeur',
@@ -27,6 +42,12 @@ export function getRoleLabel(role?: UserRole | null): string {
   };
 
   return role ? labels[role] : '';
+}
+
+export function getFormateurTypeLabel(type?: FormateurType | null): string {
+  if (type === 'permanent') return 'Permanent';
+  if (type === 'vacataire') return 'Vacataire';
+  return '-';
 }
 
 export function getDashboardPath(role?: UserRole | null): string {

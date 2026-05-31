@@ -7,7 +7,7 @@ const roleRoutes: Record<UserRole, string> = {
   formateur: '/formateur',
 };
 
-const protectedPrefixes = ['/directeur', '/gestionnaire', '/formateur'];
+const protectedPrefixes = ['/directeur', '/gestionnaire', '/formateur', '/profile'];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -47,5 +47,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/login', '/directeur/:path*', '/gestionnaire/:path*', '/formateur/:path*'],
+  matcher: ['/login', '/directeur/:path*', '/gestionnaire/:path*', '/formateur/:path*', '/profile', '/profile/:path*'],
 };

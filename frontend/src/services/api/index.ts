@@ -8,4 +8,5 @@ export * from './filiere.service';
 export * from './formateur.service';
 export * from './groupe.service';
 export * from './notification.service';
+export * from './profile.service';
 export * from './stagiaire.service';

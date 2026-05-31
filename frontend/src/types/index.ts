@@ -209,6 +209,18 @@ export interface UpdateUserPayload {
   type?: FormateurType | null;
 }
 
+export interface UpdateProfilePayload {
+  nom: string;
+  prenom: string;
+  telephone?: string | null;
+}
+
+export interface UpdatePasswordPayload {
+  current_password: string;
+  new_password: string;
+  new_password_confirmation: string;
+}
+
 export interface StoreFilierePayload {
   nom: string;
   code: string;
