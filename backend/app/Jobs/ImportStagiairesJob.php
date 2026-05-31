@@ -40,13 +40,11 @@ class ImportStagiairesJob implements ShouldQueue
             'file' => $this->filePath,
         ]);
 
-        $pendingImport = Excel::import(new StagiairesImport, $this->filePath, 'local');
-
-        unset($pendingImport);
+        Excel::import(new StagiairesImport, $this->filePath, 'local');
 
         Storage::disk('local')->delete($this->filePath);
 
-        Log::info('Import des stagiaires ajoute a la queue.', [
+        Log::info('Import des stagiaires termine.', [
             'file' => $this->filePath,
         ]);
     }

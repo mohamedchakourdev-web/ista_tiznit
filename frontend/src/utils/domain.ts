@@ -47,7 +47,7 @@ export function getPeriodeLabel(periode?: Periode | null): string {
 
 export function getAutorisationStatutLabel(statut?: AutorisationStatut | null): string {
   if (statut === 'en_attente') return 'En attente';
-  if (statut === 'validee') return 'Validee';
+  if (statut === 'validee') return 'Acceptee';
   if (statut === 'refusee') return 'Refusee';
   return '-';
 }

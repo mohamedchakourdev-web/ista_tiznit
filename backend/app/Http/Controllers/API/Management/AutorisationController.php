@@ -11,6 +11,7 @@ use App\Http\Resources\AutorisationResource;
 use App\Models\Absence;
 use App\Models\Autorisation;
 use App\Models\Notification;
+use App\Models\Stagiaire;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -29,6 +30,7 @@ class AutorisationController extends Controller
         $query = Autorisation::with([
             'absence.stagiaire.groupe',
             'absence.groupe.filiere',
+            'stagiaire.groupe.filiere',
             'targetUser',
             'validatedByUser',
         ])->orderByDesc('created_at');
@@ -60,6 +62,7 @@ class AutorisationController extends Controller
         $autorisation = Autorisation::with([
             'absence.stagiaire.groupe.filiere',
             'absence.groupe.formateurs',
+            'stagiaire.groupe.formateurs',
             'targetUser',
             'validatedByUser',
         ])->findOrFail($autorisationId);
@@ -83,27 +86,58 @@ class AutorisationController extends Controller
         DB::beginTransaction();
 
         try {
-            $absence = Absence::with(['stagiaire', 'groupe.formateurs'])
-                ->findOrFail((int) $data['absence_id']);
+            $absence = null;
+
+            if (! empty($data['absence_id'])) {
+                $absence = Absence::with(['stagiaire.groupe.formateurs', 'groupe.formateurs'])
+                    ->findOrFail((int) $data['absence_id']);
+            }
+
+            $stagiaire = $absence?->stagiaire;
+
+            if ($stagiaire === null) {
+                $stagiaire = Stagiaire::with('groupe.formateurs')
+                    ->findOrFail((int) $data['stagiaire_id']);
+            }
 
             $formateur = User::where('id', (int) $data['target_user_id'])
                 ->where('is_active', true)
                 ->role('formateur')
                 ->firstOrFail();
 
+            $statut = $data['statut'] ?? AutorisationStatutEnum::EnAttente->value;
+            $isDecisionStatut = in_array($statut, [
+                AutorisationStatutEnum::Validee->value,
+                AutorisationStatutEnum::Refusee->value,
+            ], true);
+
             $autorisation = Autorisation::create([
-                'absence_id' => $absence->id,
+                'absence_id' => $absence?->id,
+                'stagiaire_id' => $stagiaire->id,
                 'target_user_id' => $formateur->id,
                 'code' => $this->generateCode(),
-                'motif' => $data['motif'] ?? null,
-                'statut' => AutorisationStatutEnum::EnAttente,
+                'motif' => $data['motif'],
+                'statut' => $statut,
+                'date_validation' => $isDecisionStatut ? now() : null,
+                'validated_by' => $isDecisionStatut ? $user->id : null,
                 'created_by' => $user->id,
             ]);
+
+            $statutLabel = match ($statut) {
+                AutorisationStatutEnum::Validee->value => 'acceptee',
+                AutorisationStatutEnum::Refusee->value => 'refusee',
+                default => 'en attente',
+            };
 
             Notification::create([
                 'user_id' => $formateur->id,
                 'title' => 'Nouvelle autorisation',
-                'message' => 'Une nouvelle autorisation a ete creee.',
+                'message' => sprintf(
+                    'Une autorisation %s a ete creee pour %s %s.',
+                    $statutLabel,
+                    $stagiaire->prenom,
+                    $stagiaire->nom,
+                ),
                 'type' => 'autorisation',
                 'is_read' => false,
             ]);
@@ -111,6 +145,7 @@ class AutorisationController extends Controller
             $autorisation->load([
                 'absence.stagiaire.groupe.filiere',
                 'absence.groupe.formateurs',
+                'stagiaire.groupe.formateurs',
                 'targetUser',
                 'validatedByUser',
             ]);

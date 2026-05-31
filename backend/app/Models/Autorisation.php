@@ -26,6 +26,7 @@ class Autorisation extends Model
      */
     protected $fillable = [
         'absence_id',
+        'stagiaire_id',
         'target_user_id',
         'code',
         'motif',
@@ -61,6 +62,14 @@ class Autorisation extends Model
     public function absence(): BelongsTo
     {
         return $this->belongsTo(Absence::class);
+    }
+
+    /**
+     * Get the trainee linked to the authorization.
+     */
+    public function stagiaire(): BelongsTo
+    {
+        return $this->belongsTo(Stagiaire::class);
     }
 
     /**

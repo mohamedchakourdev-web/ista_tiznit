@@ -5,25 +5,57 @@ declare(strict_types=1);
 namespace App\Imports;
 
 use App\Enums\SexeEnum;
+use App\Models\DiplomeType;
+use App\Models\Groupe;
 use App\Models\Stagiaire;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Concerns\RegistersEventListeners;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithSkipDuplicates;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Validators\Failure;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use Throwable;
 
-class StagiairesImport implements ShouldQueue, SkipsEmptyRows, SkipsOnError, SkipsOnFailure, ToModel, WithBatchInserts, WithChunkReading, WithHeadingRow, WithSkipDuplicates, WithValidation
+class StagiairesImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, ToModel, WithBatchInserts, WithChunkReading, WithEvents, WithHeadingRow, WithSkipDuplicates, WithValidation
 {
+    use RegistersEventListeners;
+
+    private const MAX_REPORT_ERRORS = 50;
+
+    private int $importedRows = 0;
+
+    private int $skippedRows = 0;
+
+    private int $errorCount = 0;
+
+    /** @var array<int, bool> */
+    private array $skippedRowNumbers = [];
+
+    /** @var list<array<string, mixed>> */
+    private array $errors = [];
+
+    /** @var array<string, int>|null */
+    private ?array $groupeCodes = null;
+
+    /** @var array<string, int>|null */
+    private ?array $groupeNames = null;
+
+    /** @var array<string, int>|null */
+    private ?array $diplomeCodes = null;
+
+    /** @var array<string, int>|null */
+    private ?array $diplomeNames = null;
+
     /**
      * Convert one Excel row into a trainee model.
      *
@@ -32,6 +64,7 @@ class StagiairesImport implements ShouldQueue, SkipsEmptyRows, SkipsOnError, Ski
     public function model(array $row): Stagiaire
     {
         $row = $this->prepareRow($row);
+        $this->importedRows++;
 
         return new Stagiaire([
             'nom' => $row['nom'],
@@ -41,6 +74,7 @@ class StagiairesImport implements ShouldQueue, SkipsEmptyRows, SkipsOnError, Ski
             'email' => $row['email'],
             'telephone' => $row['telephone'],
             'adresse' => $row['adresse'],
+            'ville' => $row['ville'],
             'date_naissance' => $row['date_naissance'],
             'groupe_id' => $row['groupe_id'],
             'diplome_type_id' => $row['diplome_type_id'],
@@ -90,10 +124,51 @@ class StagiairesImport implements ShouldQueue, SkipsEmptyRows, SkipsOnError, Ski
             'email' => ['nullable', 'email', 'max:255'],
             'telephone' => ['nullable', 'string', 'max:30'],
             'adresse' => ['nullable', 'string', 'max:255'],
+            'ville' => ['nullable', 'string', 'max:100'],
             'date_naissance' => ['nullable', 'date'],
             'groupe_id' => ['required', 'integer', Rule::exists('groupes', 'id')],
             'diplome_type_id' => ['required', 'integer', Rule::exists('diplome_types', 'id')],
             'sexe' => ['nullable', Rule::enum(SexeEnum::class)],
+        ];
+    }
+
+    /**
+     * Human-readable validation messages for the import log.
+     *
+     * @return array<string, string>
+     */
+    public function customValidationMessages(): array
+    {
+        return [
+            'nom.required' => 'Le nom est obligatoire.',
+            'prenom.required' => 'Le prenom est obligatoire.',
+            'cef.required' => 'La colonne MatriculeEtudiant est obligatoire.',
+            'cef.unique' => 'Ce matricule existe deja.',
+            'cin.required' => 'La CIN est obligatoire. Si elle est absente, MatriculeEtudiant est utilise comme valeur de secours.',
+            'cin.unique' => 'Cette CIN existe deja.',
+            'groupe_id.required' => 'Aucun groupe correspondant au CodeGroupe, NomGroupe ou Groupe fourni.',
+            'groupe_id.exists' => 'Le groupe resolu est introuvable.',
+            'diplome_type_id.required' => 'Aucun type de diplome correspondant au CodeDiplome fourni.',
+            'diplome_type_id.exists' => 'Le type de diplome resolu est introuvable.',
+            'sexe' => 'Le sexe doit etre homme ou femme.',
+        ];
+    }
+
+    /**
+     * Human-readable field names for import failures.
+     *
+     * @return array<string, string>
+     */
+    public function customValidationAttributes(): array
+    {
+        return [
+            'nom' => 'Nom',
+            'prenom' => 'Prenom',
+            'cef' => 'MatriculeEtudiant',
+            'cin' => 'CIN',
+            'groupe_id' => 'Groupe',
+            'diplome_type_id' => 'CodeDiplome',
+            'sexe' => 'Sexe',
         ];
     }
 
@@ -103,12 +178,18 @@ class StagiairesImport implements ShouldQueue, SkipsEmptyRows, SkipsOnError, Ski
     public function onFailure(Failure ...$failures): void
     {
         foreach ($failures as $failure) {
-            Log::warning('Ligne stagiaire ignoree pendant l\'import.', [
-                'row' => $failure->row(),
-                'attribute' => $failure->attribute(),
-                'errors' => $failure->errors(),
-                'values' => $failure->values(),
-            ]);
+            $this->recordSkippedRow($failure->row());
+
+            $context = [
+                'ligne' => $failure->row(),
+                'champ' => $failure->attribute(),
+                'erreurs' => $failure->errors(),
+                'valeurs' => $this->reportValues($failure->values()),
+            ];
+
+            $this->recordError($context);
+
+            Log::warning('Import stagiaires - ligne ignoree.', $context);
         }
     }
 
@@ -117,8 +198,25 @@ class StagiairesImport implements ShouldQueue, SkipsEmptyRows, SkipsOnError, Ski
      */
     public function onError(Throwable $e): void
     {
-        Log::error('Erreur pendant l\'import des stagiaires.', [
+        $context = [
             'message' => $e->getMessage(),
+        ];
+
+        $this->recordError($context);
+
+        Log::error('Import stagiaires - erreur inattendue.', $context);
+    }
+
+    /**
+     * Log a readable report once the file has been processed.
+     */
+    public function afterImport(AfterImport $event): void
+    {
+        Log::info('Rapport import stagiaires.', [
+            'lignes_importees' => $this->importedRows,
+            'lignes_ignorees' => $this->skippedRows,
+            'erreurs_total' => $this->errorCount,
+            'erreurs' => $this->errors,
         ]);
     }
 
@@ -144,19 +242,211 @@ class StagiairesImport implements ShouldQueue, SkipsEmptyRows, SkipsOnError, Ski
      */
     private function prepareRow(array $row): array
     {
+        $matricule = $this->stringValue($this->firstValue($row, [
+            'cef',
+            'MatriculeEtudiant',
+            'Matricule Etudiant',
+            'Matricule etudiant',
+            'Matricule',
+            'NumeroEtudiant',
+            'Numero Etudiant',
+        ]));
+        $cin = $this->upperValue($this->firstValue($row, [
+            'cin',
+            'cni',
+            'Numero CIN',
+            'Numero CNI',
+            'CIN Etudiant',
+        ]));
+
         return [
-            'nom' => $this->stringValue($row['nom'] ?? null),
-            'prenom' => $this->stringValue($row['prenom'] ?? null),
-            'cef' => $this->stringValue($row['cef'] ?? null),
-            'cin' => $this->upperValue($row['cin'] ?? null),
-            'email' => $this->lowerValue($row['email'] ?? null),
-            'telephone' => $this->stringValue($row['telephone'] ?? null),
-            'adresse' => $this->stringValue($row['adresse'] ?? null),
-            'date_naissance' => $this->dateValue($row['date_naissance'] ?? null),
-            'groupe_id' => $this->integerValue($row['groupe_id'] ?? null),
-            'diplome_type_id' => $this->integerValue($row['diplome_type_id'] ?? null),
-            'sexe' => $this->lowerValue($row['sexe'] ?? null),
+            'nom' => $this->stringValue($this->firstValue($row, [
+                'nom',
+                'NomEtudiant',
+                'Nom Etudiant',
+                'NomStagiaire',
+                'Nom Stagiaire',
+            ])),
+            'prenom' => $this->stringValue($this->firstValue($row, [
+                'prenom',
+                'Prenom',
+                'PrenomEtudiant',
+                'Prenom Etudiant',
+                'PrenomStagiaire',
+                'Prenom Stagiaire',
+            ])),
+            'cef' => $matricule,
+            'cin' => $cin ?? $this->upperValue($matricule),
+            'email' => $this->lowerValue($this->firstValue($row, [
+                'email',
+                'e-mail',
+                'mail',
+                'Adresse Email',
+                'EmailEtudiant',
+            ])),
+            'telephone' => $this->stringValue($this->firstValue($row, [
+                'telephone',
+                'tel',
+                'gsm',
+                'portable',
+                'TelephoneEtudiant',
+            ])),
+            'adresse' => $this->stringValue($this->firstValue($row, [
+                'adresse',
+                'AdresseEtudiant',
+            ])),
+            'ville' => $this->stringValue($this->firstValue($row, [
+                'ville',
+                'VilleEtudiant',
+            ])),
+            'date_naissance' => $this->dateValue($this->firstValue($row, [
+                'date_naissance',
+                'DateNaissance',
+                'Date Naissance',
+                'DateNaissanceEtudiant',
+                'Date de naissance',
+            ])),
+            'groupe_id' => $this->resolveGroupeId(
+                $this->firstValue($row, ['groupe_id', 'IdGroupe']),
+                $this->firstValue($row, ['CodeGroupe', 'Code Groupe', 'GroupeCode']),
+                $this->firstValue($row, ['NomGroupe', 'Nom Groupe', 'Groupe', 'LibelleGroupe']),
+            ),
+            'diplome_type_id' => $this->resolveDiplomeTypeId(
+                $this->firstValue($row, ['diplome_type_id', 'IdDiplomeType']),
+                $this->firstValue($row, ['CodeDiplome', 'Code Diplome', 'DiplomeCode', 'TypeDiplome', 'Type Diplome']),
+            ),
+            'sexe' => $this->sexeValue($this->firstValue($row, [
+                'sexe',
+                'genre',
+                'civilite',
+            ])),
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     * @param  list<string>  $aliases
+     */
+    private function firstValue(array $row, array $aliases): mixed
+    {
+        $values = [];
+
+        foreach ($row as $key => $value) {
+            $values[$this->normalizeLookupKey((string) $key)] = $value;
+        }
+
+        foreach ($aliases as $alias) {
+            $key = $this->normalizeLookupKey($alias);
+
+            if (array_key_exists($key, $values) && ! $this->isBlank($values[$key])) {
+                return $values[$key];
+            }
+        }
+
+        return null;
+    }
+
+    private function resolveGroupeId(mixed $technicalId, mixed $code, mixed $name): ?int
+    {
+        $id = $this->integerValue($technicalId);
+
+        if ($id !== null && Groupe::query()->whereKey($id)->exists()) {
+            return $id;
+        }
+
+        $codeKey = $this->normalizeLookupValue($code);
+        $nameKey = $this->normalizeLookupValue($name);
+
+        if ($codeKey === null && $nameKey === null) {
+            return null;
+        }
+
+        $this->loadGroupeLookups();
+
+        if ($codeKey !== null && isset($this->groupeCodes[$codeKey])) {
+            return $this->groupeCodes[$codeKey];
+        }
+
+        if ($codeKey !== null && isset($this->groupeNames[$codeKey])) {
+            return $this->groupeNames[$codeKey];
+        }
+
+        if ($nameKey !== null && isset($this->groupeNames[$nameKey])) {
+            return $this->groupeNames[$nameKey];
+        }
+
+        if ($nameKey !== null && isset($this->groupeCodes[$nameKey])) {
+            return $this->groupeCodes[$nameKey];
+        }
+
+        return null;
+    }
+
+    private function resolveDiplomeTypeId(mixed $technicalId, mixed $code): ?int
+    {
+        $id = $this->integerValue($technicalId);
+
+        if ($id !== null && DiplomeType::query()->whereKey($id)->exists()) {
+            return $id;
+        }
+
+        $codeKey = $this->normalizeLookupValue($code);
+        if ($codeKey === null) {
+            return null;
+        }
+
+        $this->loadDiplomeLookups();
+
+        if (isset($this->diplomeCodes[$codeKey])) {
+            return $this->diplomeCodes[$codeKey];
+        }
+
+        if (isset($this->diplomeNames[$codeKey])) {
+            return $this->diplomeNames[$codeKey];
+        }
+
+        foreach ($this->diplomeCodes as $diplomeCode => $diplomeId) {
+            if (str_starts_with($codeKey, $diplomeCode)) {
+                return $diplomeId;
+            }
+        }
+
+        return null;
+    }
+
+    private function loadGroupeLookups(): void
+    {
+        if ($this->groupeCodes !== null && $this->groupeNames !== null) {
+            return;
+        }
+
+        $this->groupeCodes = [];
+        $this->groupeNames = [];
+
+        Groupe::query()
+            ->get(['id', 'code', 'nom'])
+            ->each(function (Groupe $groupe): void {
+                $this->groupeCodes[$this->normalizeLookupKey($groupe->code)] = $groupe->id;
+                $this->groupeNames[$this->normalizeLookupKey($groupe->nom)] = $groupe->id;
+            });
+    }
+
+    private function loadDiplomeLookups(): void
+    {
+        if ($this->diplomeCodes !== null && $this->diplomeNames !== null) {
+            return;
+        }
+
+        $this->diplomeCodes = [];
+        $this->diplomeNames = [];
+
+        DiplomeType::query()
+            ->get(['id', 'code', 'nom'])
+            ->sortByDesc(fn (DiplomeType $diplomeType): int => strlen($diplomeType->code))
+            ->each(function (DiplomeType $diplomeType): void {
+                $this->diplomeCodes[$this->normalizeLookupKey($diplomeType->code)] = $diplomeType->id;
+                $this->diplomeNames[$this->normalizeLookupKey($diplomeType->nom)] = $diplomeType->id;
+            });
     }
 
     private function dateValue(mixed $value): ?string
@@ -169,10 +459,24 @@ class StagiairesImport implements ShouldQueue, SkipsEmptyRows, SkipsOnError, Ski
             return ExcelDate::excelToDateTimeObject((float) $value)->format('Y-m-d');
         }
 
-        return $this->stringValue($value);
+        $value = $this->stringValue($value);
+
+        if ($value === null) {
+            return null;
+        }
+
+        foreach (['Y-m-d', 'd/m/Y', 'd-m-Y', 'm/d/Y'] as $format) {
+            $date = \DateTimeImmutable::createFromFormat($format, $value);
+
+            if ($date instanceof \DateTimeImmutable) {
+                return $date->format('Y-m-d');
+            }
+        }
+
+        return $value;
     }
 
-    private function integerValue(mixed $value): int|string|null
+    private function integerValue(mixed $value): ?int
     {
         if ($value === null || $value === '') {
             return null;
@@ -182,7 +486,7 @@ class StagiairesImport implements ShouldQueue, SkipsEmptyRows, SkipsOnError, Ski
             return (int) $value;
         }
 
-        return $this->stringValue($value);
+        return null;
     }
 
     private function lowerValue(mixed $value): ?string
@@ -208,5 +512,81 @@ class StagiairesImport implements ShouldQueue, SkipsEmptyRows, SkipsOnError, Ski
         $value = $this->stringValue($value);
 
         return $value === null ? null : mb_strtoupper($value);
+    }
+
+    private function sexeValue(mixed $value): ?string
+    {
+        $key = $this->normalizeLookupValue($value);
+
+        return match ($key) {
+            'homme', 'masculin', 'male', 'm' => SexeEnum::Homme->value,
+            'femme', 'feminin', 'female', 'f' => SexeEnum::Femme->value,
+            default => $this->lowerValue($value),
+        };
+    }
+
+    private function normalizeLookupValue(mixed $value): ?string
+    {
+        $value = $this->stringValue($value);
+
+        return $value === null ? null : $this->normalizeLookupKey($value);
+    }
+
+    private function normalizeLookupKey(string $value): string
+    {
+        $value = mb_strtolower($value);
+
+        if (function_exists('iconv')) {
+            $ascii = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
+
+            if ($ascii !== false) {
+                $value = $ascii;
+            }
+        }
+
+        return preg_replace('/[^a-z0-9]+/', '', $value) ?? '';
+    }
+
+    private function isBlank(mixed $value): bool
+    {
+        return $value === null || (is_string($value) && trim($value) === '');
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     */
+    private function recordError(array $context): void
+    {
+        $this->errorCount++;
+
+        if (count($this->errors) < self::MAX_REPORT_ERRORS) {
+            $this->errors[] = $context;
+        }
+    }
+
+    private function recordSkippedRow(int $rowNumber): void
+    {
+        if (isset($this->skippedRowNumbers[$rowNumber])) {
+            return;
+        }
+
+        $this->skippedRowNumbers[$rowNumber] = true;
+        $this->skippedRows++;
+    }
+
+    /**
+     * @param  array<string, mixed>  $values
+     * @return array<string, mixed>
+     */
+    private function reportValues(array $values): array
+    {
+        return [
+            'nom' => $values['nom'] ?? null,
+            'prenom' => $values['prenom'] ?? null,
+            'matricule' => $values['cef'] ?? null,
+            'cin' => $values['cin'] ?? null,
+            'groupe_id' => $values['groupe_id'] ?? null,
+            'diplome_type_id' => $values['diplome_type_id'] ?? null,
+        ];
     }
 }

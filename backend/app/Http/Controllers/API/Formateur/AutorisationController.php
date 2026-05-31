@@ -24,6 +24,7 @@ class AutorisationController extends Controller
             ->with([
                 'absence.stagiaire',
                 'absence.groupe',
+                'stagiaire.groupe',
             ])
             ->orderBy('created_at', 'desc');
 
@@ -35,6 +36,24 @@ class AutorisationController extends Controller
         // Filtre lecture
         if ($request->is_read !== null) {
             $query->where('is_read', $request->is_read);
+        }
+
+        $term = trim((string) $request->search);
+
+        if ($term !== '') {
+            $search = '%'.$term.'%';
+
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('stagiaire', function ($stagiaireQuery) use ($search) {
+                    $stagiaireQuery->where('nom', 'like', $search)
+                        ->orWhere('prenom', 'like', $search)
+                        ->orWhere('cef', 'like', $search);
+                })->orWhereHas('absence.stagiaire', function ($stagiaireQuery) use ($search) {
+                    $stagiaireQuery->where('nom', 'like', $search)
+                        ->orWhere('prenom', 'like', $search)
+                        ->orWhere('cef', 'like', $search);
+                });
+            });
         }
 
         $autorisations = $query->paginate($this->perPage($request));
@@ -57,6 +76,7 @@ class AutorisationController extends Controller
             ->with([
                 'absence.stagiaire',
                 'absence.groupe',
+                'stagiaire.groupe',
             ])
             ->findOrFail($id);
 
@@ -101,6 +121,12 @@ class AutorisationController extends Controller
                 'is_read' => false,
             ]);
         }
+
+        $autorisation->load([
+            'absence.stagiaire',
+            'absence.groupe',
+            'stagiaire.groupe',
+        ]);
 
         return response()->json([
             'success' => true,

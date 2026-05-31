@@ -135,12 +135,12 @@ export default function FormateurDashboard() {
               {autorisations.data.slice(0, 5).map((autorisation) => (
                 <div key={autorisation.id} className={`rounded-xl border px-5 py-4 transition-all ${autorisation.is_read ? 'border-border/50 bg-card' : 'border-primary/30 bg-primary/[0.02] shadow-sm'}`}>
                   <div className="mb-2.5 flex items-center justify-between">
-                    <p className="truncate pr-2 text-[14px] font-semibold text-foreground">{getStagiaireFullName(autorisation.absence?.stagiaire)}</p>
+                    <p className="truncate pr-2 text-[14px] font-semibold text-foreground">{getStagiaireFullName(autorisation.stagiaire ?? autorisation.absence?.stagiaire)}</p>
                     <AutorisationStatusBadge statut={autorisation.statut} />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="rounded-md border border-border/30 bg-muted/40 px-2.5 py-1 text-[13px] tabular-nums text-muted-foreground">
-                      {autorisation.absence?.date_absence ?? '-'}
+                      {autorisation.absence?.date_absence ?? autorisation.stagiaire?.groupe?.nom ?? '-'}
                     </span>
                     <ReadStatusBadge isRead={autorisation.is_read} />
                   </div>

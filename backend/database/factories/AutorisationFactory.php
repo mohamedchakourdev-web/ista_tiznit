@@ -31,6 +31,11 @@ class AutorisationFactory extends Factory
     {
         return [
             'absence_id' => Absence::factory(),
+            'stagiaire_id' => static function (array $attributes): int {
+                return Absence::query()
+                    ->findOrFail($attributes['absence_id'])
+                    ->stagiaire_id;
+            },
             'target_user_id' => static function (array $attributes): int {
                 $absence = Absence::query()
                     ->with('groupe.formateurs')

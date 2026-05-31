@@ -17,7 +17,7 @@ class UpdateFiliereRequest extends ApiRequest
      */
     public function authorize(): bool
     {
-        return $this->user()?->hasAnyRole(['directeur', 'gestionnaire']) ?? false;
+        return $this->user()?->hasRole('gestionnaire') ?? false;
     }
 
     /**

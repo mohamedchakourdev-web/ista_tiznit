@@ -23,6 +23,7 @@ class AutorisationResource extends JsonResource
         return [
             'id' => $this->id,
             'absence_id' => $this->absence_id,
+            'stagiaire_id' => $this->stagiaire_id,
             'target_user_id' => $this->target_user_id,
             'code' => $this->code,
             'motif' => $this->motif,
@@ -31,6 +32,7 @@ class AutorisationResource extends JsonResource
             'is_read' => $this->is_read,
             'read_at' => $this->read_at?->toIso8601String(),
             'absence' => AbsenceResource::make($this->whenLoaded('absence')),
+            'stagiaire' => StagiaireResource::make($this->whenLoaded('stagiaire')),
             'target_user' => UserResource::make($this->whenLoaded('targetUser')),
             'validated_by_user' => UserResource::make($this->whenLoaded('validatedByUser')),
             'created_at' => $this->created_at?->toIso8601String(),

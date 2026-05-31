@@ -82,6 +82,14 @@ class Stagiaire extends Model
     }
 
     /**
+     * Get the authorizations attached to the trainee.
+     */
+    public function autorisations(): HasMany
+    {
+        return $this->hasMany(Autorisation::class);
+    }
+
+    /**
      * Get the user who created the trainee.
      */
     public function createdBy(): BelongsTo

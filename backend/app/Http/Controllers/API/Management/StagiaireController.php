@@ -22,7 +22,7 @@ class StagiaireController extends Controller
     {
         $user = auth()->user();
 
-        $query = Stagiaire::with(['groupe.filiere', 'diplomeType'])
+        $query = Stagiaire::with(['groupe.filiere', 'groupe.formateurs', 'diplomeType'])
             ->orderBy('nom')
             ->orderBy('prenom');
 
@@ -56,7 +56,7 @@ class StagiaireController extends Controller
     {
         $user = auth()->user();
 
-        $stagiaire = Stagiaire::with(['groupe.filiere', 'diplomeType'])
+        $stagiaire = Stagiaire::with(['groupe.filiere', 'groupe.formateurs', 'diplomeType'])
             ->findOrFail($stagiaireId);
 
         return response()->json([
@@ -77,7 +77,7 @@ class StagiaireController extends Controller
         $data['created_by'] = $user->id;
 
         $stagiaire = Stagiaire::create($data);
-        $stagiaire->load(['groupe.filiere', 'diplomeType']);
+        $stagiaire->load(['groupe.filiere', 'groupe.formateurs', 'diplomeType']);
 
         return response()->json([
             'success' => true,
@@ -119,7 +119,7 @@ class StagiaireController extends Controller
         $stagiaire = Stagiaire::findOrFail($stagiaireId);
         $stagiaire->update($data);
         $stagiaire->refresh();
-        $stagiaire->load(['groupe.filiere', 'diplomeType']);
+        $stagiaire->load(['groupe.filiere', 'groupe.formateurs', 'diplomeType']);
 
         return response()->json([
             'success' => true,

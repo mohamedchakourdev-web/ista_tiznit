@@ -16,7 +16,8 @@ return new class extends Migration
     {
         Schema::create('autorisations', static function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('absence_id')->unique()->constrained()->cascadeOnDelete();
+            $table->foreignId('absence_id')->nullable()->unique()->constrained()->cascadeOnDelete();
+            $table->foreignId('stagiaire_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('target_user_id')->constrained('users')->cascadeOnDelete();
             $table->string('code', 50)->unique();
             $table->text('motif')->nullable();

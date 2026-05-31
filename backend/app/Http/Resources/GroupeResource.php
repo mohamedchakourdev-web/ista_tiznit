@@ -30,6 +30,7 @@ class GroupeResource extends JsonResource
             'capacite' => $this->capacite,
             'filiere' => FiliereResource::make($this->whenLoaded('filiere')),
             'formateurs' => UserResource::collection($this->whenLoaded('formateurs')),
+            'stagiaires' => StagiaireResource::collection($this->whenLoaded('stagiaires')),
             'stagiaires_count' => $this->whenCounted('stagiaires'),
             'absences_count' => $this->whenCounted('absences'),
             'created_at' => $this->created_at?->toIso8601String(),

@@ -43,8 +43,28 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
 
             Route::middleware('permission:manage users')->group(function (): void {
                 Route::get('/users', [UserController::class, 'index']);
-                Route::get('/users/{userId}', [UserController::class, 'show'])
-                    ->whereNumber('userId');
+                Route::post('/users', [UserController::class, 'store']);
+                Route::get('/users/{id}', [UserController::class, 'show'])
+                    ->whereNumber('id');
+                Route::put('/users/{id}', [UserController::class, 'update'])
+                    ->whereNumber('id');
+                Route::delete('/users/{id}', [UserController::class, 'destroy'])
+                    ->whereNumber('id');
+            });
+        });
+
+    Route::prefix('directeur')
+        ->middleware(['role:directeur'])
+        ->group(function (): void {
+            Route::middleware('permission:manage users')->group(function (): void {
+                Route::get('/users', [UserController::class, 'index']);
+                Route::post('/users', [UserController::class, 'store']);
+                Route::get('/users/{id}', [UserController::class, 'show'])
+                    ->whereNumber('id');
+                Route::put('/users/{id}', [UserController::class, 'update'])
+                    ->whereNumber('id');
+                Route::delete('/users/{id}', [UserController::class, 'destroy'])
+                    ->whereNumber('id');
             });
         });
 
@@ -52,13 +72,17 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
         ->middleware(['role:directeur|gestionnaire'])
         ->group(function (): void {
             Route::prefix('filieres')
-                ->middleware('permission:manage filieres')
+                ->middleware(['role:gestionnaire', 'permission:manage filieres'])
                 ->group(function (): void {
                     Route::get('/', [FiliereController::class, 'index']);
                     Route::post('/', [FiliereController::class, 'store']);
                     Route::get('/{filiereId}', [FiliereController::class, 'show'])
                         ->whereNumber('filiereId');
+                    Route::put('/{filiereId}', [FiliereController::class, 'update'])
+                        ->whereNumber('filiereId');
                     Route::patch('/{filiereId}', [FiliereController::class, 'update'])
+                        ->whereNumber('filiereId');
+                    Route::delete('/{filiereId}', [FiliereController::class, 'destroy'])
                         ->whereNumber('filiereId');
                 });
 

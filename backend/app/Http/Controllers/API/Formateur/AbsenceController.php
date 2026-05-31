@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\Formateur;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AbsenceResource;
+use App\Models\Absence;
 use Illuminate\Http\Request;
 
 class AbsenceController extends Controller
@@ -14,9 +15,10 @@ class AbsenceController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
+        $groupeIds = $user->groupes()->pluck('groupes.id');
 
         // Récupérer absences des groupes du formateur
-        $query = $user->absences()
+        $query = Absence::whereIn('groupe_id', $groupeIds)
             ->with([
                 'stagiaire',
                 'groupe',
@@ -64,9 +66,10 @@ class AbsenceController extends Controller
     public function show($id)
     {
         $user = auth()->user();
+        $groupeIds = $user->groupes()->pluck('groupes.id');
 
         // Chercher seulement dans les absences du formateur
-        $absence = $user->absences()
+        $absence = Absence::whereIn('groupe_id', $groupeIds)
             ->with([
                 'stagiaire',
                 'stagiaire.groupe',

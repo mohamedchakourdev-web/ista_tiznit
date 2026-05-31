@@ -96,4 +96,21 @@ class FiliereController extends Controller
             'data' => new FiliereResource($filiere),
         ]);
     }
+
+    /**
+     * Supprimer une filière.
+     */
+    public function destroy(int $filiereId): JsonResponse
+    {
+        $user = auth()->user();
+
+        $filiere = Filiere::findOrFail($filiereId);
+        $filiere->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Filiere supprimee',
+            'data' => (object) [],
+        ]);
+    }
 }

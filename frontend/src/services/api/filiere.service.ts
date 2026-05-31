@@ -24,6 +24,10 @@ export const filiereService = {
   },
 
   update(id: number, payload: UpdateFilierePayload) {
-    return apiClient.patch<ApiResponse<Filiere>>(`/gestionnaire/filieres/${id}`, payload).then((res) => res.data);
+    return apiClient.put<ApiResponse<Filiere>>(`/gestionnaire/filieres/${id}`, payload).then((res) => res.data);
+  },
+
+  delete(id: number) {
+    return apiClient.delete<ApiResponse<Record<string, never>>>(`/gestionnaire/filieres/${id}`).then((res) => res.data);
   },
 };

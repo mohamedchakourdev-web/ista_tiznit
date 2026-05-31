@@ -65,7 +65,7 @@ export function JustificationBadge({ justification }: { justification: string })
 export function AutorisationStatusBadge({ statut }: { statut: string }) {
   const map: Record<string, { variant: StatusVariant; label: string }> = {
     en_attente: { variant: 'warning', label: 'En attente' },
-    validee: { variant: 'success', label: 'Validee' },
+    validee: { variant: 'success', label: 'Acceptee' },
     refusee: { variant: 'danger', label: 'Refusee' },
   };
   const item = map[statut] || { variant: 'neutral' as StatusVariant, label: statut };

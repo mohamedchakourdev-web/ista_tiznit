@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { FolderOpen, MoreHorizontal, Pencil, Plus } from 'lucide-react';
+import { FolderOpen, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { filiereService, getApiErrorMessage } from '@/services/api';
 import type { Filiere, StoreFilierePayload } from '@/types';
@@ -14,6 +14,7 @@ import { SearchInput } from '@/components/shared/search-input';
 import { Pagination } from '@/components/shared/pagination';
 import { EmptyState } from '@/components/shared/empty-state';
 import { TableSkeleton } from '@/components/shared/loading-skeleton';
+import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,6 +37,7 @@ export default function FilieresPage() {
   const [search, setSearch] = useState('');
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Filiere | null>(null);
+  const [deleting, setDeleting] = useState<Filiere | null>(null);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -65,6 +67,16 @@ export default function FilieresPage() {
       closeDialog();
     },
     onError: (error) => toast.error(getApiErrorMessage(error, 'Impossible de modifier la filière.')),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => filiereService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['filieres'] });
+      toast.success('Filière supprimée.');
+      setDeleting(null);
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error, 'Impossible de supprimer la filière.')),
   });
 
   const openCreate = () => {
@@ -139,6 +151,10 @@ export default function FilieresPage() {
                           <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                           Modifier
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setDeleting(filiere)} className="text-[13px] gap-2 text-destructive focus:text-destructive">
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Supprimer
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -181,6 +197,16 @@ export default function FilieresPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleting}
+        onOpenChange={(value) => { if (!value) setDeleting(null); }}
+        onConfirm={() => { if (deleting) deleteMutation.mutate(deleting.id); }}
+        title="Supprimer la filière"
+        description="Voulez-vous vraiment supprimer cette filière ?"
+        confirmLabel="Supprimer"
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }

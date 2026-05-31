@@ -140,7 +140,8 @@ export interface Absence {
 
 export interface Autorisation {
   id: number;
-  absence_id: number;
+  absence_id: number | null;
+  stagiaire_id: number | null;
   target_user_id: number;
   code: string;
   motif: string | null;
@@ -149,6 +150,7 @@ export interface Autorisation {
   is_read: boolean;
   read_at: string | null;
   absence?: Absence;
+  stagiaire?: Stagiaire;
   target_user?: User;
   validated_by_user?: User;
   created_at?: string | null;
@@ -187,6 +189,22 @@ export interface LoginPayload {
 export interface LoginResponse {
   token: string;
   user: User;
+}
+
+export interface StoreUserPayload {
+  nom: string;
+  prenom?: string | null;
+  email: string;
+  password: string;
+  role: UserRole;
+}
+
+export interface UpdateUserPayload {
+  nom?: string;
+  prenom?: string | null;
+  email?: string;
+  password?: string;
+  role?: UserRole;
 }
 
 export interface StoreFilierePayload {
@@ -238,9 +256,11 @@ export interface StoreAbsencePayload {
 }
 
 export interface StoreAutorisationPayload {
-  absence_id: number;
+  absence_id?: number | null;
+  stagiaire_id?: number | null;
   target_user_id: number;
-  motif?: string | null;
+  statut?: Extract<AutorisationStatut, 'validee' | 'refusee'>;
+  motif: string;
 }
 
 export interface UpdateAutorisationStatusPayload {

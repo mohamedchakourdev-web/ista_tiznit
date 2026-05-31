@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { absenceService, getApiErrorMessage, groupeService, stagiaireService } from '@/services/api';
 import type { StoreAbsencePayload } from '@/types';
 import { PageHeader } from '@/components/shared/page-header';
+import { SearchInput } from '@/components/shared/search-input';
 import { Pagination } from '@/components/shared/pagination';
 import { EmptyState } from '@/components/shared/empty-state';
 import { TableSkeleton } from '@/components/shared/loading-skeleton';
@@ -76,6 +77,7 @@ function toPayload(values: FormValues): StoreAbsencePayload {
 export default function AbsencesPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [groupeFilter, setGroupeFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
@@ -92,10 +94,11 @@ export default function AbsencesPage() {
   const watchType = useWatch({ control, name: 'type' });
 
   const { data, isLoading } = useQuery({
-    queryKey: ['absences', page, typeFilter, groupeFilter, dateFilter],
+    queryKey: ['absences', page, search, typeFilter, groupeFilter, dateFilter],
     queryFn: () => absenceService.list({
       page,
       per_page: 10,
+      search: search || undefined,
       type: typeFilter || undefined,
       groupe_id: groupeFilter || undefined,
       date_absence: dateFilter || undefined,
@@ -144,6 +147,12 @@ export default function AbsencesPage() {
       </PageHeader>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <SearchInput
+          value={search}
+          onChange={(value) => { setSearch(value); setPage(1); }}
+          placeholder="Rechercher CEF, nom, groupe..."
+          className="w-full sm:w-80"
+        />
         <Select value={groupeFilter} onValueChange={(value) => { setGroupeFilter(value && value !== 'all' ? value : ''); setPage(1); }}>
           <SelectTrigger className="h-9 w-full rounded-lg border-border/50 bg-muted/30 text-[14px] sm:w-[220px]">
             <SelectValue placeholder="Tous groupes" />

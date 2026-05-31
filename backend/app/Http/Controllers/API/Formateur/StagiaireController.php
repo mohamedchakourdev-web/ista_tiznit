@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\Formateur;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\StagiaireResource;
+use App\Models\Stagiaire;
 use Illuminate\Http\Request;
 
 class StagiaireController extends Controller
@@ -14,9 +15,10 @@ class StagiaireController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
+        $groupeIds = $user->groupes()->pluck('groupes.id');
 
         // Récupérer stagiaires des groupes du formateur
-        $query = $user->stagiaires()
+        $query = Stagiaire::whereIn('groupe_id', $groupeIds)
             ->with([
                 'groupe',
                 'groupe.filiere',
@@ -60,9 +62,10 @@ class StagiaireController extends Controller
     public function show($id)
     {
         $user = auth()->user();
+        $groupeIds = $user->groupes()->pluck('groupes.id');
 
         // Chercher seulement dans les stagiaires du formateur
-        $stagiaire = $user->stagiaires()
+        $stagiaire = Stagiaire::whereIn('groupe_id', $groupeIds)
             ->with([
                 'groupe',
                 'groupe.filiere',

@@ -47,6 +47,41 @@ class AbsenceController extends Controller
             $query->where('type', (string) $request->type);
         }
 
+        $term = trim((string) $request->search);
+
+        if ($term !== '') {
+            $search = '%'.$term.'%';
+            $terms = array_values(array_filter(preg_split('/\s+/', $term) ?: []));
+
+            $query->where(function ($q) use ($search, $terms) {
+                $q->whereHas('stagiaire', function ($stagiaireQuery) use ($search, $terms) {
+                    $stagiaireQuery->where(function ($stagiaireSearchQuery) use ($search, $terms) {
+                        $stagiaireSearchQuery->where('cef', 'like', $search)
+                            ->orWhere('nom', 'like', $search)
+                            ->orWhere('prenom', 'like', $search);
+
+                        if (count($terms) > 1) {
+                            $stagiaireSearchQuery->orWhere(function ($fullNameQuery) use ($terms) {
+                                foreach ($terms as $term) {
+                                    $like = '%'.$term.'%';
+
+                                    $fullNameQuery->where(function ($namePartQuery) use ($like) {
+                                        $namePartQuery->where('nom', 'like', $like)
+                                            ->orWhere('prenom', 'like', $like);
+                                    });
+                                }
+                            });
+                        }
+                    });
+                })->orWhereHas('groupe', function ($groupeQuery) use ($search) {
+                    $groupeQuery->where(function ($groupeSearchQuery) use ($search) {
+                        $groupeSearchQuery->where('nom', 'like', $search)
+                            ->orWhere('code', 'like', $search);
+                    });
+                });
+            });
+        }
+
         $absences = $query->paginate($this->perPage($request));
 
         return $this->paginatedResponse(
