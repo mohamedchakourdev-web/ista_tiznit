@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Bell, CheckCheck, Search } from 'lucide-react';
+import { Bell, CheckCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { MobileSidebar } from './sidebar';
 import { notificationService } from '@/services/api';
@@ -64,13 +64,7 @@ export function Navbar() {
       </div>
 
       <div className="flex items-center gap-1.5">
-        <button className="hidden lg:flex items-center gap-2.5 h-[34px] px-3.5 rounded-lg border border-border/40 bg-slate-50/80 text-muted-foreground/60 text-[13px] font-normal hover:border-border/60 hover:bg-slate-50 hover:text-muted-foreground transition-all duration-200 min-w-[220px]">
-          <Search className="h-3.5 w-3.5 text-muted-foreground/40" />
-          <span>Rechercher...</span>
-          <kbd className="ml-auto inline-flex h-[20px] items-center rounded-[4px] border border-border/30 bg-white px-1.5 text-[10px] font-medium text-muted-foreground/50">
-            Ctrl K
-          </kbd>
-        </button>
+        {/* Global search removed per design — keep notifications and avatar only */}
 
         <DropdownMenu>
           <DropdownMenuTrigger className="relative flex h-[34px] w-[34px] items-center justify-center rounded-lg text-muted-foreground/60 hover:bg-slate-50 hover:text-foreground/80 transition-all duration-200">
