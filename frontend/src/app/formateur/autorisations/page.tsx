@@ -107,11 +107,30 @@ export default function FormateurAutorisationsPage() {
           <SelectContent>
             <SelectItem value="all">Tous</SelectItem>
             <SelectItem value="en_attente">En attente</SelectItem>
-            <SelectItem value="validee">Acceptee</SelectItem>
-            <SelectItem value="refusee">Refusee</SelectItem>
+            <SelectItem value="validee">Acceptée</SelectItem>
+            <SelectItem value="refusee">Refusée</SelectItem>
           </SelectContent>
         </Select>
       </div>
+
+      {selectedAutorisation?.statut === 'en_attente' && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 shadow-sm">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
+              <p className="text-[13px] font-semibold text-amber-900">
+                Autorisation en attente
+              </p>
+              <p className="mt-0.5 text-[12px] text-amber-800/80">
+                Validation rapide pour <span className="font-mono">{selectedAutorisation.code}</span>
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {renderDetailsAction('refusee')}
+              {renderDetailsAction('validee')}
+            </div>
+          </div>
+        </div>
+      )}
 
       {isLoading ? (
         <TableSkeleton columns={8} />
@@ -229,14 +248,6 @@ export default function FormateurAutorisationsPage() {
         autorisation={selectedAutorisation}
         onOpenChange={(value) => { if (!value) closeDetails(); }}
         currentUser={currentUser}
-        footer={
-          selectedAutorisation?.statut === 'en_attente' ? (
-            <>
-              {renderDetailsAction('refusee')}
-              {renderDetailsAction('validee')}
-            </>
-          ) : null
-        }
       />
     </div>
   );

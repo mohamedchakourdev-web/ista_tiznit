@@ -62,14 +62,14 @@ export function getDashboardPath(role?: UserRole | null): string {
 
 export function getPeriodeLabel(periode?: Periode | null): string {
   if (periode === 'matin') return 'Matin';
-  if (periode === 'apres_midi') return 'Apres-midi';
+  if (periode === 'apres_midi') return 'Après-midi';
   return '-';
 }
 
 export function getAutorisationStatutLabel(statut?: AutorisationStatut | null): string {
   if (statut === 'en_attente') return 'En attente';
-  if (statut === 'validee') return 'Acceptee';
-  if (statut === 'refusee') return 'Refusee';
+  if (statut === 'validee') return 'Acceptée';
+  if (statut === 'refusee') return 'Refusée';
   return '-';
 }
 

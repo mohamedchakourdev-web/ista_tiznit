@@ -65,8 +65,8 @@ export function JustificationBadge({ justification }: { justification: string })
 export function AutorisationStatusBadge({ statut }: { statut: string }) {
   const map: Record<string, { variant: StatusVariant; label: string }> = {
     en_attente: { variant: 'warning', label: 'En attente' },
-    validee: { variant: 'success', label: 'Acceptee' },
-    refusee: { variant: 'danger', label: 'Refusee' },
+    validee: { variant: 'success', label: 'Acceptée' },
+    refusee: { variant: 'danger', label: 'Refusée' },
   };
   const item = map[statut] || { variant: 'neutral' as StatusVariant, label: statut };
 
@@ -81,7 +81,7 @@ export function PeriodBadge({ period }: { period: string }) {
   const isMorning = period === 'matin';
   return (
     <StatusBadge variant={isMorning ? 'info' : 'warning'} dot={false}>
-      {isMorning ? 'Matin' : 'Apres-midi'}
+      {isMorning ? 'Matin' : 'Après-midi'}
     </StatusBadge>
   );
 }
