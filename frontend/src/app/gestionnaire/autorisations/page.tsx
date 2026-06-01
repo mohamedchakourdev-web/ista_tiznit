@@ -5,10 +5,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { FileCheck, Plus } from 'lucide-react';
+import { FileCheck, Plus, Eye } from 'lucide-react';
 import { toast } from 'sonner';
-import { autorisationService, getApiErrorMessage, stagiaireService } from '@/services/api';
-import type { StoreAutorisationPayload } from '@/types';
+import {
+  absenceService,
+  autorisationService,
+  getApiErrorMessage,
+  stagiaireService,
+} from '@/services/api';
+import type { Autorisation, StoreAutorisationPayload } from '@/types';
 import { PageHeader } from '@/components/shared/page-header';
 import { SearchInput } from '@/components/shared/search-input';
 import { Pagination } from '@/components/shared/pagination';
@@ -21,10 +26,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getStagiaireFullName, getUserFullName } from '@/utils/domain';
+import { getStagiaireFullName, getUserFullName, compactDate, getPeriodeLabel } from '@/utils/domain';
+import { AutorisationDetailsDialog } from '@/components/shared/autorisation-details-dialog';
+import { useAuthStore } from '@/store/auth.store';
 
 const schema = z.object({
   stagiaire_id: z.string().min(1, 'Stagiaire requis'),
+  absence_id: z.string().optional(),
   target_user_id: z.string().min(1, 'Formateur requis'),
   statut: z.enum(['validee', 'refusee']),
   motif: z.string().trim().min(1, 'Motif requis'),
@@ -34,6 +42,7 @@ type FormValues = z.infer<typeof schema>;
 
 const defaultValues: FormValues = {
   stagiaire_id: '',
+  absence_id: '',
   target_user_id: '',
   statut: 'validee',
   motif: '',
@@ -42,6 +51,7 @@ const defaultValues: FormValues = {
 function toPayload(values: FormValues): StoreAutorisationPayload {
   return {
     stagiaire_id: Number(values.stagiaire_id),
+    absence_id: values.absence_id ? Number(values.absence_id) : null,
     target_user_id: Number(values.target_user_id),
     statut: values.statut,
     motif: values.motif,
@@ -50,11 +60,13 @@ function toPayload(values: FormValues): StoreAutorisationPayload {
 
 export default function AutorisationsPage() {
   const queryClient = useQueryClient();
+  const currentUser = useAuthStore((state) => state.user);
   const [page, setPage] = useState(1);
   const [statutFilter, setStatutFilter] = useState('');
   const [search, setSearch] = useState('');
   const [stagiaireSearch, setStagiaireSearch] = useState('');
   const [open, setOpen] = useState(false);
+  const [selectedAutorisation, setSelectedAutorisation] = useState<Autorisation | null>(null);
 
   const { register, handleSubmit, reset, setValue, control, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -62,6 +74,7 @@ export default function AutorisationsPage() {
   });
 
   const watchStagiaireId = useWatch({ control, name: 'stagiaire_id' });
+  const watchAbsenceId = useWatch({ control, name: 'absence_id' });
   const watchTargetUserId = useWatch({ control, name: 'target_user_id' });
   const watchStatut = useWatch({ control, name: 'statut' });
 
@@ -90,15 +103,26 @@ export default function AutorisationsPage() {
     enabled: open && Boolean(watchStagiaireId),
   });
 
+  const { data: absences, isLoading: absencesLoading } = useQuery({
+    queryKey: ['absences', 'autorisation-form', watchStagiaireId],
+    queryFn: () => absenceService.list({
+      stagiaire_id: Number(watchStagiaireId),
+      per_page: 100,
+    }),
+    enabled: open && Boolean(watchStagiaireId),
+  });
+
+  const eligibleAbsences = absences?.data.filter((absence) => !absence.autorisation) ?? [];
+
   const createMutation = useMutation({
     mutationFn: (payload: StoreAutorisationPayload) => autorisationService.create(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['autorisations'] });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      toast.success('Autorisation creee.');
+      toast.success('Autorisation créée.');
       closeDialog();
     },
-    onError: (error) => toast.error(getApiErrorMessage(error, 'Impossible de creer l autorisation.')),
+    onError: (error) => toast.error(getApiErrorMessage(error, 'Impossible de créer l\'autorisation.')),
   });
 
   const closeDialog = () => {
@@ -107,11 +131,19 @@ export default function AutorisationsPage() {
     reset(defaultValues);
   };
 
+  const openDetails = (autorisation: Autorisation) => {
+    setSelectedAutorisation(autorisation);
+  };
+
+  const closeDetails = () => {
+    setSelectedAutorisation(null);
+  };
+
   const formateurs = selectedStagiaire?.data.groupe?.formateurs ?? [];
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Autorisations" description="Creer et suivre les autorisations de justification" icon={FileCheck}>
+      <PageHeader title="Autorisations" description="Créer et suivre les autorisations de justification" icon={FileCheck}>
         <Button
           onClick={() => {
             reset(defaultValues);
@@ -139,16 +171,16 @@ export default function AutorisationsPage() {
           <SelectContent>
             <SelectItem value="all">Tous</SelectItem>
             <SelectItem value="en_attente">En attente</SelectItem>
-            <SelectItem value="validee">Acceptee</SelectItem>
-            <SelectItem value="refusee">Refusee</SelectItem>
+            <SelectItem value="validee">Acceptée</SelectItem>
+            <SelectItem value="refusee">Refusée</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {isLoading ? (
-        <TableSkeleton columns={7} />
+        <TableSkeleton columns={8} />
       ) : !data?.data.length ? (
-        <EmptyState title="Aucune autorisation" description="Aucune autorisation ne correspond aux filtres selectionnes." icon={FileCheck} />
+        <EmptyState title="Aucune autorisation" description="Aucune autorisation ne correspond aux filtres sélectionnés." icon={FileCheck} />
       ) : (
         <div className="overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm">
           <Table>
@@ -161,6 +193,7 @@ export default function AutorisationsPage() {
                 <TableHead className="px-5 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground/80">Statut</TableHead>
                 <TableHead className="px-5 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground/80">Lecture</TableHead>
                 <TableHead className="hidden px-5 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground/80 lg:table-cell">Motif</TableHead>
+                <TableHead className="w-16 px-5 text-right text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground/80">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -173,6 +206,19 @@ export default function AutorisationsPage() {
                   <TableCell className="px-5 py-3"><AutorisationStatusBadge statut={autorisation.statut} /></TableCell>
                   <TableCell className="px-5 py-3"><ReadStatusBadge isRead={autorisation.is_read} /></TableCell>
                   <TableCell className="hidden max-w-[220px] truncate px-5 py-3 text-[14px] text-muted-foreground lg:table-cell">{autorisation.motif || '-'}</TableCell>
+                  <TableCell className="px-5 py-3 text-right">
+                    <Button
+                      type="button"
+                      size="icon-sm"
+                      variant="ghost"
+                      title="Voir les détails"
+                      aria-label={`Voir les détails de ${autorisation.code}`}
+                      onClick={() => openDetails(autorisation)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -193,7 +239,7 @@ export default function AutorisationsPage() {
                 <SearchInput
                   value={stagiaireSearch}
                   onChange={setStagiaireSearch}
-                  placeholder="Nom, prenom ou CEF..."
+                  placeholder="Nom, prénom ou CEF..."
                   className="w-full"
                 />
               </div>
@@ -204,11 +250,12 @@ export default function AutorisationsPage() {
                   value={watchStagiaireId}
                   onValueChange={(value) => {
                     setValue('stagiaire_id', value || '');
+                    setValue('absence_id', '');
                     setValue('target_user_id', '');
                   }}
                 >
                   <SelectTrigger className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]">
-                    <SelectValue placeholder={stagiairesLoading ? 'Chargement...' : 'Selectionner un stagiaire'} />
+                    <SelectValue placeholder={stagiairesLoading ? 'Chargement...' : 'Sélectionner un stagiaire'} />
                   </SelectTrigger>
                   <SelectContent>
                     {stagiaires?.data.map((stagiaire) => (
@@ -222,10 +269,38 @@ export default function AutorisationsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Formateur concerne</Label>
+                <Label>Absence concernée (Optionnel)</Label>
+                <Select
+                  value={watchAbsenceId}
+                  onValueChange={(value) => setValue('absence_id', value || '')}
+                >
+                  <SelectTrigger disabled={!watchStagiaireId || absencesLoading} className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]">
+                    <SelectValue placeholder={
+                      !watchStagiaireId 
+                        ? 'Sélectionner d\'abord un stagiaire' 
+                        : absencesLoading 
+                          ? 'Chargement des absences...' 
+                          : eligibleAbsences.length === 0 
+                            ? 'Aucune absence à justifier' 
+                            : 'Sélectionner une absence'
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {eligibleAbsences.map((absence) => (
+                      <SelectItem key={absence.id} value={String(absence.id)}>
+                        Le {compactDate(absence.date_absence)} - {getPeriodeLabel(absence.periode)} ({absence.type === 'absence' ? 'Absence' : 'Retard'})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.absence_id && <p className="text-[12px] text-destructive">{errors.absence_id.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Formateur concerné</Label>
                 <Select value={watchTargetUserId} onValueChange={(value) => setValue('target_user_id', value || '')}>
                   <SelectTrigger disabled={!watchStagiaireId || selectedStagiaireLoading} className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]">
-                    <SelectValue placeholder={selectedStagiaireLoading ? 'Chargement...' : 'Selectionner'} />
+                    <SelectValue placeholder={selectedStagiaireLoading ? 'Chargement...' : 'Sélectionner'} />
                   </SelectTrigger>
                   <SelectContent>
                     {formateurs.map((formateur) => (
@@ -243,8 +318,8 @@ export default function AutorisationsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="validee">Acceptee</SelectItem>
-                    <SelectItem value="refusee">Refusee</SelectItem>
+                    <SelectItem value="validee">Acceptée</SelectItem>
+                    <SelectItem value="refusee">Refusée</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -261,12 +336,19 @@ export default function AutorisationsPage() {
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog} disabled={createMutation.isPending} className="rounded-lg">Annuler</Button>
               <Button type="submit" disabled={createMutation.isPending} className="rounded-lg bg-primary text-white hover:bg-primary-hover">
-                {createMutation.isPending ? 'Creation...' : 'Creer'}
+                {createMutation.isPending ? 'Création...' : 'Créer'}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+
+      <AutorisationDetailsDialog
+        open={!!selectedAutorisation}
+        autorisation={selectedAutorisation}
+        onOpenChange={(value) => { if (!value) closeDetails(); }}
+        currentUser={currentUser}
+      />
     </div>
   );
 }
