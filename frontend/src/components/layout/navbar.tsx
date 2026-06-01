@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Bell, CheckCheck, LogOut, UserRound } from 'lucide-react';
 import { toast } from 'sonner';
 import { MobileSidebar } from './sidebar';
-import { authService, notificationService, autorisationService, getApiErrorMessage } from '@/services/api';
+import { authService, notificationService } from '@/services/api';
 import type { ApiCollectionResponse, Notification } from '@/types';
 import { useAuthStore } from '@/store/auth.store';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -188,29 +188,6 @@ export function Navbar() {
     }
   };
 
-  const updateAutorisationStatus = useMutation({
-    mutationFn: ({ id, statut }: { id: number; statut: 'validee' | 'refusee' }) =>
-      autorisationService.updateStatus(id, { statut }),
-    onSuccess: (response) => {
-      const updated = response.data;
-      queryClient.invalidateQueries({ queryKey: ['formateur', 'autorisations'] });
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-
-      setSelectedNotification((current) => {
-        if (current?.type === 'autorisation' && current.autorisation?.id === updated.id) {
-          return {
-            ...current,
-            autorisation: updated,
-          };
-        }
-        return current;
-      });
-
-      toast.success('Autorisation mise a jour.');
-    },
-    onError: (error) => toast.error(getApiErrorMessage(error, 'Impossible de mettre a jour l autorisation.')),
-  });
-
   const handleLogout = async () => {
     try {
       await authService.logout();
@@ -362,12 +339,6 @@ export function Navbar() {
           }
         }}
         currentUser={user}
-        onAction={(statut) => {
-          if (selectedAutorisation) {
-            updateAutorisationStatus.mutate({ id: selectedAutorisation.id, statut });
-          }
-        }}
-        isActionPending={updateAutorisationStatus.isPending}
       />
 
       <AbsenceDetailsDialog

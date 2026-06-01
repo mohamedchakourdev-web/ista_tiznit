@@ -1,11 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Check, Eye, FileCheck, X } from 'lucide-react';
-import { toast } from 'sonner';
-import { autorisationService, getApiErrorMessage } from '@/services/api';
-import type { Autorisation, AutorisationStatut } from '@/types';
+import { useQuery } from '@tanstack/react-query';
+import { Eye, FileCheck } from 'lucide-react';
+import { autorisationService } from '@/services/api';
+import type { Autorisation } from '@/types';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
 import { PageHeader } from '@/components/shared/page-header';
@@ -27,7 +26,6 @@ import {
 } from '@/utils/notification-details';
 
 export default function FormateurAutorisationsPage() {
-  const queryClient = useQueryClient();
   const currentUser = useAuthStore((state) => state.user);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -42,18 +40,6 @@ export default function FormateurAutorisationsPage() {
       search: search || undefined,
       statut: statutFilter || undefined,
     }),
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, statut }: { id: number; statut: Extract<AutorisationStatut, 'validee' | 'refusee'> }) =>
-      autorisationService.updateStatus(id, { statut }),
-    onSuccess: (response) => {
-      setSelectedAutorisation(response.data);
-      queryClient.invalidateQueries({ queryKey: ['formateur', 'autorisations'] });
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      toast.success('Autorisation mise a jour.');
-    },
-    onError: (error) => toast.error(getApiErrorMessage(error, 'Impossible de mettre a jour l autorisation.')),
   });
 
   const openDetails = (autorisation: Autorisation) => {
@@ -205,12 +191,6 @@ export default function FormateurAutorisationsPage() {
         autorisation={selectedAutorisation}
         onOpenChange={(value) => { if (!value) closeDetails(); }}
         currentUser={currentUser}
-        onAction={(statut) => {
-          if (selectedAutorisation) {
-            updateMutation.mutate({ id: selectedAutorisation.id, statut });
-          }
-        }}
-        isActionPending={updateMutation.isPending}
       />
     </div>
   );
