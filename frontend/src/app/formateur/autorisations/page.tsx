@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Eye, FileCheck, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { autorisationService, getApiErrorMessage } from '@/services/api';
-import type { Autorisation, AutorisationStatut, User } from '@/types';
+import type { Autorisation, AutorisationStatut } from '@/types';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
 import { PageHeader } from '@/components/shared/page-header';
@@ -14,44 +14,17 @@ import { EmptyState } from '@/components/shared/empty-state';
 import { Pagination } from '@/components/shared/pagination';
 import { TableSkeleton } from '@/components/shared/loading-skeleton';
 import { AutorisationStatusBadge, ReadStatusBadge } from '@/components/shared/status-badge';
+import { AutorisationDetailsDialog } from '@/components/shared/autorisation-details-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { compactDate, compactDateTime, getStagiaireFullName, getUserFullName } from '@/utils/domain';
-
-function getAutorisationStagiaire(autorisation: Autorisation) {
-  return autorisation.stagiaire ?? autorisation.absence?.stagiaire ?? null;
-}
-
-function getAutorisationCef(autorisation: Autorisation): string {
-  return getAutorisationStagiaire(autorisation)?.cef ?? '-';
-}
-
-function getAutorisationGroupe(autorisation: Autorisation): string {
-  return (
-    autorisation.stagiaire?.groupe?.nom ??
-    autorisation.absence?.groupe?.nom ??
-    autorisation.absence?.stagiaire?.groupe?.nom ??
-    '-'
-  );
-}
-
-function getAutorisationDate(autorisation: Autorisation): string {
-  return compactDate(autorisation.created_at);
-}
-
-function getAutorisationFormateur(autorisation: Autorisation, currentUser?: User | null): string {
-  const targetName = getUserFullName(autorisation.target_user);
-  if (targetName) return targetName;
-
-  if (currentUser?.id === autorisation.target_user_id) {
-    return getUserFullName(currentUser) || currentUser.email;
-  }
-
-  return `Formateur #${autorisation.target_user_id}`;
-}
+import { compactDate, getStagiaireFullName } from '@/utils/domain';
+import {
+  getAutorisationCef,
+  getAutorisationGroupe,
+  getAutorisationStagiaire,
+} from '@/utils/notification-details';
 
 export default function FormateurAutorisationsPage() {
   const queryClient = useQueryClient();
@@ -116,8 +89,6 @@ export default function FormateurAutorisationsPage() {
     );
   };
 
-  const detailsStagiaire = selectedAutorisation ? getAutorisationStagiaire(selectedAutorisation) : null;
-
   return (
     <div className="space-y-6">
       <PageHeader title="Autorisations" description="Autorisations recues du service gestionnaire" icon={FileCheck} />
@@ -173,7 +144,7 @@ export default function FormateurAutorisationsPage() {
                     <TableCell className="px-5 py-3 text-[14px] text-muted-foreground">{getAutorisationGroupe(autorisation)}</TableCell>
                     <TableCell className="px-5 py-3"><AutorisationStatusBadge statut={autorisation.statut} /></TableCell>
                     <TableCell className="px-5 py-3"><ReadStatusBadge isRead={autorisation.is_read} /></TableCell>
-                    <TableCell className="px-5 py-3 text-[14px] tabular-nums text-muted-foreground">{getAutorisationDate(autorisation)}</TableCell>
+                    <TableCell className="px-5 py-3 text-[14px] tabular-nums text-muted-foreground">{compactDate(autorisation.created_at)}</TableCell>
                     <TableCell className="px-5 py-3 text-right">
                       <Button
                         type="button"
@@ -236,7 +207,7 @@ export default function FormateurAutorisationsPage() {
                   </div>
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground/80">Date</p>
-                    <p className="tabular-nums text-muted-foreground">{getAutorisationDate(autorisation)}</p>
+                    <p className="tabular-nums text-muted-foreground">{compactDate(autorisation.created_at)}</p>
                   </div>
                   <div className="flex items-end justify-end">
                     <AutorisationStatusBadge statut={autorisation.statut} />
@@ -253,77 +224,20 @@ export default function FormateurAutorisationsPage() {
         </>
       )}
 
-      <Dialog open={!!selectedAutorisation} onOpenChange={(value) => { if (!value) closeDetails(); }}>
-        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-[720px]">
-          {selectedAutorisation && (
+      <AutorisationDetailsDialog
+        open={!!selectedAutorisation}
+        autorisation={selectedAutorisation}
+        onOpenChange={(value) => { if (!value) closeDetails(); }}
+        currentUser={currentUser}
+        footer={
+          selectedAutorisation?.statut === 'en_attente' ? (
             <>
-              <DialogHeader className="border-b border-border/40 pb-4">
-                <DialogTitle>Details de l&apos;autorisation</DialogTitle>
-              </DialogHeader>
-
-              <div className="space-y-5">
-                <section className="space-y-3">
-                  <h2 className="text-[13px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">Informations generales</h2>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div className="rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5">
-                      <p className="text-[12px] text-muted-foreground">Code autorisation</p>
-                      <p className="mt-1 font-mono text-[14px] text-foreground">{selectedAutorisation.code}</p>
-                    </div>
-                    <div className="rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5">
-                      <p className="text-[12px] text-muted-foreground">Date creation</p>
-                      <p className="mt-1 text-[14px] tabular-nums text-foreground">{compactDateTime(selectedAutorisation.created_at)}</p>
-                    </div>
-                    <div className="rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5">
-                      <p className="text-[12px] text-muted-foreground">Nom stagiaire</p>
-                      <p className="mt-1 text-[14px] font-medium text-foreground">{detailsStagiaire?.nom ?? '-'}</p>
-                    </div>
-                    <div className="rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5">
-                      <p className="text-[12px] text-muted-foreground">Prenom stagiaire</p>
-                      <p className="mt-1 text-[14px] font-medium text-foreground">{detailsStagiaire?.prenom ?? '-'}</p>
-                    </div>
-                    <div className="rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5">
-                      <p className="text-[12px] text-muted-foreground">CEF</p>
-                      <p className="mt-1 font-mono text-[14px] text-foreground">{getAutorisationCef(selectedAutorisation)}</p>
-                    </div>
-                    <div className="rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5">
-                      <p className="text-[12px] text-muted-foreground">Groupe</p>
-                      <p className="mt-1 text-[14px] text-foreground">{getAutorisationGroupe(selectedAutorisation)}</p>
-                    </div>
-                    <div className="rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5 sm:col-span-2">
-                      <p className="text-[12px] text-muted-foreground">Formateur concerne</p>
-                      <p className="mt-1 text-[14px] text-foreground">{getAutorisationFormateur(selectedAutorisation, currentUser)}</p>
-                    </div>
-                    <div className="rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5">
-                      <p className="text-[12px] text-muted-foreground">Statut</p>
-                      <div className="mt-1"><AutorisationStatusBadge statut={selectedAutorisation.statut} /></div>
-                    </div>
-                    <div className="rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5">
-                      <p className="text-[12px] text-muted-foreground">Lecture</p>
-                      <div className="mt-1"><ReadStatusBadge isRead={selectedAutorisation.is_read} /></div>
-                    </div>
-                  </div>
-                </section>
-
-                <section className="space-y-3">
-                  <h2 className="text-[13px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">Motif</h2>
-                  <div className="rounded-lg border border-border/50 bg-card px-4 py-3">
-                    <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-muted-foreground">
-                      {selectedAutorisation.motif || 'Aucun motif renseigne.'}
-                    </p>
-                  </div>
-                </section>
-              </div>
-
-              {selectedAutorisation.statut === 'en_attente' && (
-                <DialogFooter>
-                  {renderDetailsAction('refusee')}
-                  {renderDetailsAction('validee')}
-                </DialogFooter>
-              )}
+              {renderDetailsAction('refusee')}
+              {renderDetailsAction('validee')}
             </>
-          )}
-        </DialogContent>
-      </Dialog>
+          ) : null
+        }
+      />
     </div>
   );
 }

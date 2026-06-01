@@ -12,6 +12,24 @@ use Illuminate\Http\Request;
 class NotificationController extends Controller
 {
     /**
+     * Relations a charger pour le detail d'une notification.
+     *
+     * @return array<int, string>
+     */
+    private function notificationRelations(): array
+    {
+        return [
+            'absence.stagiaire.groupe',
+            'absence.groupe',
+            'autorisation.absence.stagiaire.groupe',
+            'autorisation.absence.groupe',
+            'autorisation.stagiaire.groupe',
+            'autorisation.targetUser',
+            'autorisation.validatedByUser',
+        ];
+    }
+
+    /**
      * Liste des notifications de l'utilisateur.
      */
     public function index(Request $request): JsonResponse
@@ -19,6 +37,7 @@ class NotificationController extends Controller
         $user = auth()->user();
 
         $notifications = $user->notifications()
+            ->with($this->notificationRelations())
             ->orderByDesc('created_at')
             ->paginate(10);
 
@@ -30,7 +49,7 @@ class NotificationController extends Controller
     }
 
     /**
-     * Détails d'une notification.
+     * Details d'une notification.
      */
     public function show(int $notificationId): JsonResponse
     {
@@ -38,11 +57,12 @@ class NotificationController extends Controller
 
         $notification = $user
             ->notifications()
+            ->with($this->notificationRelations())
             ->findOrFail($notificationId);
 
         return response()->json([
             'success' => true,
-            'message' => 'Détails de la notification',
+            'message' => 'Details de la notification',
             'data' => new NotificationResource($notification),
         ]);
     }
@@ -56,6 +76,7 @@ class NotificationController extends Controller
 
         $notification = $user
             ->notifications()
+            ->with($this->notificationRelations())
             ->findOrFail($notificationId);
 
         if (! $notification->is_read) {
@@ -67,7 +88,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Notification marquée comme lue',
+            'message' => 'Notification marquee comme lue',
             'data' => new NotificationResource($notification),
         ]);
     }

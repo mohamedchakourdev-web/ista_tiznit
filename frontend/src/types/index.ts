@@ -159,11 +159,15 @@ export interface Autorisation {
 
 export interface Notification {
   id: number;
+  absence_id: number | null;
+  autorisation_id: number | null;
   title: string;
   message: string;
   type: NotificationType;
   is_read: boolean;
   read_at: string | null;
+  absence?: Absence | null;
+  autorisation?: Autorisation | null;
   created_at: string | null;
 }
 

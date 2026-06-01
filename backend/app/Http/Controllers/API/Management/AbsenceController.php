@@ -143,6 +143,7 @@ class AbsenceController extends Controller
             foreach ($absence->groupe->formateurs as $formateur) {
                 Notification::create([
                     'user_id' => $formateur->id,
+                    'absence_id' => $absence->id,
                     'title' => 'Nouvelle absence',
                     'message' => sprintf(
                         'Une %s a ete enregistree pour %s %s le %s.',

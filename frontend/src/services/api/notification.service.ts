@@ -14,6 +14,10 @@ export const notificationService = {
       .then((res) => res.data);
   },
 
+  show(id: number) {
+    return apiClient.get<ApiResponse<Notification>>(`/notifications/${id}`).then((res) => res.data);
+  },
+
   markAsRead(id: number) {
     return apiClient.post<ApiResponse<Notification>>(`/notifications/${id}/read`).then((res) => res.data);
   },

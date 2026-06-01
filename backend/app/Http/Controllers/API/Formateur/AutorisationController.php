@@ -115,6 +115,7 @@ class AutorisationController extends Controller
         foreach ($users as $recipient) {
             Notification::create([
                 'user_id' => $recipient->id,
+                'autorisation_id' => $autorisation->id,
                 'title' => 'Mise a jour autorisation',
                 'message' => 'Le formateur a repondu a une autorisation.',
                 'type' => 'autorisation',

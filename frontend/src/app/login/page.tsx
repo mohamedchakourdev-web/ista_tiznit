@@ -290,6 +290,7 @@ export default function LoginPage() {
                     Adresse email
                   </Label>
                   <Input
+                    key="login-email"
                     id="email"
                     type="email"
                     placeholder="nom@ofppt.local"
@@ -321,6 +322,7 @@ export default function LoginPage() {
                   </div>
                   <div className="relative">
                     <Input
+                      key={`login-password-${showPassword ? 'text' : 'password'}`}
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
@@ -382,6 +384,7 @@ export default function LoginPage() {
                     Adresse email
                   </Label>
                   <Input
+                    key="forgot-email"
                     id="forgot-email"
                     type="email"
                     placeholder="nom@ofppt.local"

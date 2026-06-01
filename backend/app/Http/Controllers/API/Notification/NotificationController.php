@@ -4,17 +4,37 @@ namespace App\Http\Controllers\API\Notification;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\NotificationResource;
+use Illuminate\Http\JsonResponse;
 
 class NotificationController extends Controller
 {
     /**
+     * Relations a charger pour le panneau notifications.
+     *
+     * @return array<int, string>
+     */
+    private function notificationRelations(): array
+    {
+        return [
+            'absence.stagiaire.groupe',
+            'absence.groupe',
+            'autorisation.absence.stagiaire.groupe',
+            'autorisation.absence.groupe',
+            'autorisation.stagiaire.groupe',
+            'autorisation.targetUser',
+            'autorisation.validatedByUser',
+        ];
+    }
+
+    /**
      * Liste des notifications.
      */
-    public function index()
+    public function index(): JsonResponse
     {
         $user = auth()->user();
 
         $notifications = $user->notifications()
+            ->with($this->notificationRelations())
             ->latest()
             ->paginate($this->perPage(request()));
 
@@ -27,11 +47,12 @@ class NotificationController extends Controller
     /**
      * Liste des notifications non lues.
      */
-    public function unread()
+    public function unread(): JsonResponse
     {
         $user = auth()->user();
 
         $notifications = $user->notifications()
+            ->with($this->notificationRelations())
             ->where('is_read', false)
             ->latest()
             ->paginate($this->perPage(request()));
@@ -43,13 +64,33 @@ class NotificationController extends Controller
     }
 
     /**
-     * Marquer une notification comme lue.
+     * Details d'une notification.
      */
-    public function markAsRead($id)
+    public function show(int $id): JsonResponse
     {
         $user = auth()->user();
 
-        $notification = $user->notifications()->findOrFail($id);
+        $notification = $user->notifications()
+            ->with($this->notificationRelations())
+            ->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Details de la notification',
+            'data' => new NotificationResource($notification),
+        ]);
+    }
+
+    /**
+     * Marquer une notification comme lue.
+     */
+    public function markAsRead(int $id): JsonResponse
+    {
+        $user = auth()->user();
+
+        $notification = $user->notifications()
+            ->with($this->notificationRelations())
+            ->findOrFail($id);
 
         if (! $notification->is_read) {
             $notification->update([
@@ -68,7 +109,7 @@ class NotificationController extends Controller
     /**
      * Marquer toutes les notifications comme lues.
      */
-    public function markAllAsRead()
+    public function markAllAsRead(): JsonResponse
     {
         $user = auth()->user();
 

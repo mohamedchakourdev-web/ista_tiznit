@@ -102,6 +102,7 @@ class AbsenceSeeder extends Seeder
 
                             Notification::factory()->create([
                                 'user_id' => $targetUser->id,
+                                'autorisation_id' => $autorisation->id,
                                 'type' => 'autorisation',
                                 'title' => 'Autorisation en attente',
                                 'message' => sprintf(

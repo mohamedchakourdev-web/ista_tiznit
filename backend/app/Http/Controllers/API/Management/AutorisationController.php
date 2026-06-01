@@ -166,6 +166,7 @@ class AutorisationController extends Controller
 
             Notification::create([
                 'user_id' => $formateur->id,
+                'autorisation_id' => $autorisation->id,
                 'title' => 'Nouvelle autorisation',
                 'message' => sprintf(
                     'Une autorisation %s a ete creee pour %s %s.',

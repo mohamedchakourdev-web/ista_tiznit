@@ -32,6 +32,8 @@ class NotificationFactory extends Factory
 
         return [
             'user_id' => User::factory(),
+            'absence_id' => null,
+            'autorisation_id' => null,
             'type' => $type,
             'title' => match ($type) {
                 'autorisation' => 'Nouvelle autorisation',

@@ -21,6 +21,8 @@ class Notification extends Model
      */
     protected $fillable = [
         'user_id',
+        'absence_id',
+        'autorisation_id',
         'title',
         'message',
         'type',
@@ -47,5 +49,21 @@ class Notification extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the absence linked to the notification.
+     */
+    public function absence(): BelongsTo
+    {
+        return $this->belongsTo(Absence::class);
+    }
+
+    /**
+     * Get the authorization linked to the notification.
+     */
+    public function autorisation(): BelongsTo
+    {
+        return $this->belongsTo(Autorisation::class);
     }
 }
