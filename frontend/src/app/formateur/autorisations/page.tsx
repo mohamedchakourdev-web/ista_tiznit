@@ -64,31 +64,6 @@ export default function FormateurAutorisationsPage() {
     setSelectedAutorisation(null);
   };
 
-  const renderDetailsAction = (statut: Extract<AutorisationStatut, 'validee' | 'refusee'>) => {
-    if (!selectedAutorisation) return null;
-
-    const isAccept = statut === 'validee';
-
-    return (
-      <Button
-        type="button"
-        size="sm"
-        variant={isAccept ? 'default' : 'outline'}
-        onClick={() => updateMutation.mutate({ id: selectedAutorisation.id, statut })}
-        disabled={updateMutation.isPending}
-        className={cn(
-          'h-9 rounded-lg text-[13px] font-medium',
-          isAccept
-            ? 'bg-primary text-white hover:bg-primary-hover'
-            : 'border-red-200 text-red-700 hover:bg-red-50',
-        )}
-      >
-        {isAccept ? <Check className="mr-1.5 h-4 w-4" /> : <X className="mr-1.5 h-4 w-4" />}
-        {isAccept ? 'Accepter' : 'Refuser'}
-      </Button>
-    );
-  };
-
   return (
     <div className="space-y-6">
       <PageHeader title="Autorisations" description="Autorisations recues du service gestionnaire" icon={FileCheck} />
@@ -113,24 +88,6 @@ export default function FormateurAutorisationsPage() {
         </Select>
       </div>
 
-      {selectedAutorisation?.statut === 'en_attente' && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 shadow-sm">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="min-w-0">
-              <p className="text-[13px] font-semibold text-amber-900">
-                Autorisation en attente
-              </p>
-              <p className="mt-0.5 text-[12px] text-amber-800/80">
-                Validation rapide pour <span className="font-mono">{selectedAutorisation.code}</span>
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {renderDetailsAction('refusee')}
-              {renderDetailsAction('validee')}
-            </div>
-          </div>
-        </div>
-      )}
 
       {isLoading ? (
         <TableSkeleton columns={8} />
@@ -248,6 +205,12 @@ export default function FormateurAutorisationsPage() {
         autorisation={selectedAutorisation}
         onOpenChange={(value) => { if (!value) closeDetails(); }}
         currentUser={currentUser}
+        onAction={(statut) => {
+          if (selectedAutorisation) {
+            updateMutation.mutate({ id: selectedAutorisation.id, statut });
+          }
+        }}
+        isActionPending={updateMutation.isPending}
       />
     </div>
   );

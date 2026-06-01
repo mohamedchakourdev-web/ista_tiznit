@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import type { Autorisation, User } from '@/types';
 import Image from 'next/image';
 import QRCode from 'qrcode';
-import { FileDown, FileText, CalendarDays, Clock3, Loader2, QrCode, X } from 'lucide-react';
+import { Check, FileDown, FileText, CalendarDays, Clock3, Loader2, QrCode, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,8 @@ interface AutorisationDetailsDialogProps {
   autorisation: Autorisation | null;
   onOpenChange: (open: boolean) => void;
   currentUser?: User | null;
+  onAction?: (statut: 'validee' | 'refusee') => void;
+  isActionPending?: boolean;
 }
 
 type StatusTone = {
@@ -665,6 +667,8 @@ export function AutorisationDetailsDialog({
   autorisation,
   onOpenChange,
   currentUser,
+  onAction,
+  isActionPending = false,
 }: AutorisationDetailsDialogProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [qrResolvedKey, setQrResolvedKey] = useState<string | null>(null);
@@ -765,7 +769,7 @@ export function AutorisationDetailsDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[min(980px,calc(100vw-1rem))] overflow-y-auto border border-border/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.95)_100%)] p-0 text-foreground shadow-[0_32px_96px_rgba(15,23,42,0.18)] sm:h-[650px] sm:max-w-[980px] sm:overflow-hidden lg:h-[680px]"
+        className="w-[min(980px,calc(100vw-1rem))] overflow-y-auto border border-border/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.95)_100%)] p-0 text-foreground shadow-[0_32px_96px_rgba(15,23,42,0.18)] sm:h-[650px] sm:max-h-[calc(100vh-2rem)] sm:max-w-[980px] sm:overflow-hidden lg:h-[680px] lg:max-h-[calc(100vh-2rem)]"
       >
         <div className="relative flex h-full flex-col overflow-hidden">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.08),transparent_42%),radial-gradient(circle_at_top_left,rgba(16,185,129,0.06),transparent_36%)]" />
@@ -799,7 +803,7 @@ export function AutorisationDetailsDialog({
             </div>
           </header>
 
-          <div className="relative grid flex-1 gap-4 px-5 py-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_252px] lg:py-5">
+          <div className="relative grid flex-1 gap-4 overflow-y-auto px-5 py-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_252px] lg:py-5">
             <div className="flex min-w-0 flex-col gap-4">
               <section className="rounded-2xl border border-border/50 bg-white/90 p-4 shadow-sm">
                 <div className="flex items-center gap-3">
@@ -932,25 +936,60 @@ export function AutorisationDetailsDialog({
           </div>
 
           <footer className="relative border-t border-border/40 bg-white/80 px-5 py-3.5 sm:px-6">
-            <div className="flex justify-center">
-              <Button
-                type="button"
-                onClick={() => void handleExportPdf()}
-                disabled={exporting}
-                className="h-9 rounded-lg bg-primary px-4 text-[13px] font-medium text-white hover:bg-primary-hover"
-              >
-                {exporting ? (
-                  <>
-                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-                    Export en cours...
-                  </>
-                ) : (
-                  <>
-                    <FileDown className="mr-1.5 h-4 w-4" />
-                    Exporter PDF
-                  </>
-                )}
-              </Button>
+            <div className={cn(
+              "flex flex-col-reverse gap-2 sm:flex-row sm:items-center w-full",
+              autorisation.statut === 'en_attente' && onAction ? "sm:justify-between" : "justify-center"
+            )}>
+              <div className="flex justify-center">
+                <Button
+                  type="button"
+                  onClick={() => void handleExportPdf()}
+                  disabled={exporting}
+                  variant={autorisation.statut === 'en_attente' && onAction ? 'outline' : 'default'}
+                  className={cn(
+                    "h-9 rounded-lg text-[13px] font-medium px-4",
+                    autorisation.statut === 'en_attente' && onAction 
+                      ? "border-border/60 text-foreground hover:bg-muted/60" 
+                      : "bg-primary text-white hover:bg-primary-hover"
+                  )}
+                >
+                  {exporting ? (
+                    <>
+                      <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                      Export en cours...
+                    </>
+                  ) : (
+                    <>
+                      <FileDown className="mr-1.5 h-4 w-4" />
+                      Exporter PDF
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {autorisation.statut === 'en_attente' && onAction && (
+                <div className="flex items-center justify-center gap-2">
+                  <Button
+                    type="button"
+                    onClick={() => onAction('refusee')}
+                    disabled={isActionPending}
+                    variant="outline"
+                    className="h-9 px-4 rounded-lg border-red-200 text-[13px] font-medium text-red-700 hover:bg-red-50 hover:text-red-800"
+                  >
+                    <X className="mr-1.5 h-4 w-4" />
+                    Refuser
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => onAction('validee')}
+                    disabled={isActionPending}
+                    className="h-9 px-4 rounded-lg bg-primary text-white hover:bg-primary-hover text-[13px] font-medium"
+                  >
+                    <Check className="mr-1.5 h-4 w-4" />
+                    Accepter
+                  </Button>
+                </div>
+              )}
             </div>
           </footer>
         </div>
