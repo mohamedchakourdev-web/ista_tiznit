@@ -28,6 +28,9 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 50);
@@ -41,6 +44,30 @@ export default function LoginPage() {
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   });
+
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail) {
+      toast.error('Veuillez saisir votre adresse email.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(forgotEmail)) {
+      toast.error('Adresse email invalide.');
+      return;
+    }
+
+    setForgotLoading(true);
+    try {
+      const response = await authService.forgotPassword(forgotEmail);
+      toast.success(response.message || 'Un email avec votre nouveau mot de passe a été envoyé.');
+      setShowForgotPassword(false);
+      setForgotEmail('');
+    } catch (error: unknown) {
+      toast.error(getApiErrorMessage(error, 'Impossible de réinitialiser le mot de passe.'));
+    } finally {
+      setForgotLoading(false);
+    }
+  };
 
   const onSubmit = async (data: LoginForm) => {
     setLoading(true);
@@ -244,91 +271,160 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Heading */}
-          <div className="mb-7">
-            <h1 className="text-[26px] font-bold tracking-[-0.02em] text-[#0F172A] leading-tight">
-              Bon retour
-            </h1>
-            <p className="mt-2 text-[14px] text-[#64748B] leading-relaxed">
-              Connectez-vous à votre espace de gestion
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Email */}
-            <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-[13px] font-semibold text-[#334155]">
-                Adresse email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="nom@ofppt.local"
-                {...register('email')}
-                className="h-[42px] rounded-[10px] border-[#E2E8F0] bg-[#F8FAFC] text-[14px] placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/15 focus-visible:border-[#0F766E]/40 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
-                autoFocus
-              />
-              {errors.email && (
-                <p className="text-[12px] text-[#DC2626] font-medium flex items-center gap-1">
-                  <span className="inline-block h-1 w-1 rounded-full bg-[#DC2626]" />
-                  {errors.email.message}
+          {!showForgotPassword ? (
+            <>
+              {/* Heading */}
+              <div className="mb-7">
+                <h1 className="text-[26px] font-bold tracking-[-0.02em] text-[#0F172A] leading-tight">
+                  Bon retour
+                </h1>
+                <p className="mt-2 text-[14px] text-[#64748B] leading-relaxed">
+                  Connectez-vous à votre espace de gestion
                 </p>
-              )}
-            </div>
-
-            {/* Password */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-[13px] font-semibold text-[#334155]">
-                  Mot de passe
-                </Label>
-                <button type="button" className="text-[12px] text-[#0F766E] font-semibold hover:text-[#115E59] transition-colors">
-                  Oublié ?
-                </button>
               </div>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  {...register('password')}
-                  className="h-[42px] rounded-[10px] border-[#E2E8F0] bg-[#F8FAFC] text-[14px] pr-11 placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/15 focus-visible:border-[#0F766E]/40 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
-                />
+
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                {/* Email */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-[13px] font-semibold text-[#334155]">
+                    Adresse email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="nom@ofppt.local"
+                    {...register('email')}
+                    className="h-[42px] rounded-[10px] border-[#E2E8F0] bg-[#F8FAFC] text-[14px] placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/15 focus-visible:border-[#0F766E]/40 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+                    autoFocus
+                  />
+                  {errors.email && (
+                    <p className="text-[12px] text-[#DC2626] font-medium flex items-center gap-1">
+                      <span className="inline-block h-1 w-1 rounded-full bg-[#DC2626]" />
+                      {errors.email.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Password */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password" className="text-[13px] font-semibold text-[#334155]">
+                      Mot de passe
+                    </Label>
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-[12px] text-[#0F766E] font-semibold hover:text-[#115E59] transition-colors"
+                    >
+                      Oublié ?
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      {...register('password')}
+                      className="h-[42px] rounded-[10px] border-[#E2E8F0] bg-[#F8FAFC] text-[14px] pr-11 placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/15 focus-visible:border-[#0F766E]/40 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-0 top-0 h-[42px] w-11 flex items-center justify-center text-[#94A3B8] hover:text-[#475569] transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="h-[15px] w-[15px]" /> : <Eye className="h-[15px] w-[15px]" />}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className="text-[12px] text-[#DC2626] font-medium flex items-center gap-1">
+                      <span className="inline-block h-1 w-1 rounded-full bg-[#DC2626]" />
+                      {errors.password.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Submit */}
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-[42px] rounded-[10px] bg-[#0F766E] hover:bg-[#115E59] active:bg-[#134E4A] text-white font-semibold text-[14px] transition-all duration-200 mt-1 shadow-[0_1px_3px_rgba(15,118,110,0.4),0_4px_12px_rgba(15,118,110,0.15)] hover:shadow-[0_1px_3px_rgba(15,118,110,0.5),0_6px_20px_rgba(15,118,110,0.2)] disabled:opacity-50"
+                >
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
+                      <span>Connexion...</span>
+                    </div>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      Se connecter
+                      <ArrowRight className="h-4 w-4" />
+                    </span>
+                  )}
+                </Button>
+              </form>
+            </>
+          ) : (
+            <>
+              {/* Heading */}
+              <div className="mb-7">
+                <h1 className="text-[26px] font-bold tracking-[-0.02em] text-[#0F172A] leading-tight">
+                  Mot de passe oublié ?
+                </h1>
+                <p className="mt-2 text-[14px] text-[#64748B] leading-relaxed">
+                  Saisissez votre adresse email pour recevoir un nouveau mot de passe temporaire.
+                </p>
+              </div>
+
+              <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+                {/* Email */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="forgot-email" className="text-[13px] font-semibold text-[#334155]">
+                    Adresse email
+                  </Label>
+                  <Input
+                    id="forgot-email"
+                    type="email"
+                    placeholder="nom@ofppt.local"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    className="h-[42px] rounded-[10px] border-[#E2E8F0] bg-[#F8FAFC] text-[14px] placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/15 focus-visible:border-[#0F766E]/40 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+                    autoFocus
+                  />
+                </div>
+
+                {/* Submit */}
+                <Button
+                  type="submit"
+                  disabled={forgotLoading}
+                  className="w-full h-[42px] rounded-[10px] bg-[#0F766E] hover:bg-[#115E59] active:bg-[#134E4A] text-white font-semibold text-[14px] transition-all duration-200 mt-1 shadow-[0_1px_3px_rgba(15,118,110,0.4),0_4px_12px_rgba(15,118,110,0.15)] hover:shadow-[0_1px_3px_rgba(15,118,110,0.5),0_6px_20px_rgba(15,118,110,0.2)] disabled:opacity-50"
+                >
+                  {forgotLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
+                      <span>Envoi en cours...</span>
+                    </div>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      Envoyer le mot de passe
+                      <ArrowRight className="h-4 w-4" />
+                    </span>
+                  )}
+                </Button>
+
+                {/* Back button */}
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-0 top-0 h-[42px] w-11 flex items-center justify-center text-[#94A3B8] hover:text-[#475569] transition-colors"
+                  onClick={() => {
+                    setShowForgotPassword(false);
+                    setForgotEmail('');
+                  }}
+                  className="w-full text-center text-[13px] text-[#64748B] font-semibold hover:text-[#475569] transition-colors mt-2"
                 >
-                  {showPassword ? <EyeOff className="h-[15px] w-[15px]" /> : <Eye className="h-[15px] w-[15px]" />}
+                  Retour à la connexion
                 </button>
-              </div>
-              {errors.password && (
-                <p className="text-[12px] text-[#DC2626] font-medium flex items-center gap-1">
-                  <span className="inline-block h-1 w-1 rounded-full bg-[#DC2626]" />
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-
-            {/* Submit */}
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full h-[42px] rounded-[10px] bg-[#0F766E] hover:bg-[#115E59] active:bg-[#134E4A] text-white font-semibold text-[14px] transition-all duration-200 mt-1 shadow-[0_1px_3px_rgba(15,118,110,0.4),0_4px_12px_rgba(15,118,110,0.15)] hover:shadow-[0_1px_3px_rgba(15,118,110,0.5),0_6px_20px_rgba(15,118,110,0.2)] disabled:opacity-50"
-            >
-              {loading ? (
-                <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
-                  <span>Connexion...</span>
-                </div>
-              ) : (
-                <span className="flex items-center gap-2">
-                  Se connecter
-                  <ArrowRight className="h-4 w-4" />
-                </span>
-              )}
-            </Button>
-          </form>
+              </form>
+            </>
+          )}
 
           {/* Trust badges */}
           <div className="mt-6 grid grid-cols-2 gap-2">

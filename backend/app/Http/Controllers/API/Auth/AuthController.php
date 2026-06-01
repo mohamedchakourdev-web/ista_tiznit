@@ -8,8 +8,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Mail\TemporaryPasswordMail;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -120,6 +124,46 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Authenticated user retrieved successfully.',
             'data' => new UserResource($user),
+        ]);
+    }
+
+    /**
+     * Réinitialisation de mot de passe simple (génère un mot de passe temporaire).
+     */
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ], [
+            'email.required' => 'L\'adresse email est requise.',
+            'email.email' => 'L\'adresse email doit être valide.',
+            'email.exists' => 'Aucun utilisateur n\'est enregistré avec cette adresse email.',
+        ]);
+
+        $user = User::where('email', $request->email)->firstOrFail();
+
+        // Génère un mot de passe aléatoire de 10 caractères lisibles
+        $tempPassword = Str::random(10);
+
+        // Met à jour le mot de passe dans la base de données
+        $user->password = Hash::make($tempPassword);
+        $user->save();
+
+        try {
+            // Envoie l'email
+            Mail::to($user->email)->send(new TemporaryPasswordMail($user, $tempPassword));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Erreur SMTP lors de l\'envoi du mot de passe temporaire: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Impossible d\'envoyer l\'email. Veuillez vérifier la configuration SMTP dans le fichier .env.',
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Un nouveau mot de passe temporaire a été envoyé à votre adresse email.',
         ]);
     }
 }

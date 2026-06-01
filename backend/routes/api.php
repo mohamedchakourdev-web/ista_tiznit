@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function (): void {
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 
     Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
         Route::post('/logout', [AuthController::class, 'logout']);

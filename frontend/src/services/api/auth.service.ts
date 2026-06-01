@@ -13,4 +13,8 @@ export const authService = {
   logout() {
     return apiClient.post<ApiResponse<Record<string, never>>>('/auth/logout').then((res) => res.data);
   },
+
+  forgotPassword(email: string) {
+    return apiClient.post<ApiResponse<unknown>>('/auth/forgot-password', { email }).then((res) => res.data);
+  },
 };
