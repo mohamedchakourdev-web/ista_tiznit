@@ -1,7 +1,9 @@
-"use client";
+'use client';
 
-import Image from "next/image";
+import Image from 'next/image';
+import { X } from 'lucide-react';
 import {
+  BadgeCheck,
   CalendarCheck,
   CalendarDays,
   ClipboardPenLine,
@@ -10,23 +12,23 @@ import {
   Presentation,
   UserRound,
   UsersRound,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-
-import type { Autorisation, User } from "@/types";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import type { Autorisation, User } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import {
   compactDate,
   getAutorisationStatutLabel,
   getPeriodeLabel,
   getStagiaireFullName,
-} from "@/utils/domain";
+} from '@/utils/domain';
 import {
   getAutorisationCef,
   getAutorisationFormateur,
   getAutorisationGroupe,
   getAutorisationStagiaire,
-} from "@/utils/notification-details";
+} from '@/utils/notification-details';
 
 interface AutorisationDetailsDialogProps {
   open: boolean;
@@ -35,40 +37,63 @@ interface AutorisationDetailsDialogProps {
   currentUser?: User | null;
 }
 
-// Solid status pills — green = acceptée, red = refusée, amber = en attente.
-const statusBadgeTone: Record<Autorisation["statut"], { bg: string; ring: string }> = {
-  en_attente: { bg: "#f59e0b", ring: "rgba(245, 158, 11, 0.28)" },
-  validee: { bg: "#22c55e", ring: "rgba(34, 197, 94, 0.28)" },
-  refusee: { bg: "#ef4444", ring: "rgba(239, 68, 68, 0.28)" },
+const statusTone: Record<Autorisation['statut'], { badge: string; dot: string }> = {
+  en_attente: {
+    badge: 'border-amber-400/70 bg-amber-50 text-amber-900',
+    dot: 'bg-amber-500',
+  },
+  validee: {
+    badge: 'border-emerald-500/60 bg-emerald-50 text-emerald-900',
+    dot: 'bg-emerald-600',
+  },
+  refusee: {
+    badge: 'border-red-500/60 bg-red-50 text-red-900',
+    dot: 'bg-red-600',
+  },
 };
 
-function displayValue(value?: string | null) {
-  const trimmed = value?.trim();
-  return trimmed || "-";
-}
-
-function StatusBadge({ statut, label }: { statut: Autorisation["statut"]; label: string }) {
-  const tone = statusBadgeTone[statut];
+function StatusBadge({ statut }: { statut: Autorisation['statut'] }) {
+  const tone = statusTone[statut];
+  const label = getAutorisationStatutLabel(statut).toLocaleUpperCase('fr-FR');
 
   return (
     <span
-      className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[13px] font-bold uppercase leading-none tracking-[0.08em] text-white"
-      style={{ backgroundColor: tone.bg, boxShadow: `0 0 0 4px ${tone.ring}` }}
+      className={`inline-flex items-center gap-2 rounded-md border px-3 py-1 font-serif text-[13px] font-black uppercase tracking-[0.1em] ${tone.badge}`}
     >
-      <span className="h-2 w-2 rounded-full bg-white/90" aria-hidden="true" />
+      <span className={`h-2 w-2 rounded-full ${tone.dot}`} />
       {label}
     </span>
   );
 }
 
-function ReferenceDivider() {
+function DataRow({
+  icon: Icon,
+  label,
+  value,
+  isStatus = false,
+  statut,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+  isStatus?: boolean;
+  statut?: Autorisation['statut'];
+}) {
   return (
-    <div className="mx-auto mt-3 flex w-40 items-center justify-center gap-2" aria-hidden="true">
-      <span className="h-px flex-1 bg-[#1a2e4a]/35" />
-      <span className="grid h-2.5 w-2.5 rotate-45 place-items-center border border-[#1a2e4a] bg-white">
-        <span className="block h-1 w-1 bg-[#1a2e4a]" />
-      </span>
-      <span className="h-px flex-1 bg-[#1a2e4a]/35" />
+    <div className="flex border-b border-dotted border-[#d1d8e2] last:border-b-0">
+      <div className="flex w-[180px] shrink-0 items-center gap-2.5 bg-[#f4f6fa] px-4 py-3 border-r border-[#d1d8e2]">
+        <Icon className="h-4 w-4 shrink-0 text-[#073f7c]" strokeWidth={2.5} />
+        <span className="font-serif text-[13px] font-black text-[#071a3d]">
+          {label}&nbsp;:
+        </span>
+      </div>
+      <div className="flex min-w-0 flex-1 items-center px-4 py-3 font-serif text-[13px] text-black">
+        {isStatus && statut ? (
+          <StatusBadge statut={statut} />
+        ) : (
+          <span className="truncate">{value || '-'}</span>
+        )}
+      </div>
     </div>
   );
 }
@@ -76,39 +101,20 @@ function ReferenceDivider() {
 function OfpptStamp() {
   return (
     <div
-      className="relative grid h-24 w-24 shrink-0 place-items-center rounded-full border-[3px] border-[#3355d4] text-center text-[#3355d4] opacity-[0.85]"
-      style={{ transform: "rotate(-8deg)" }}
+      className="relative h-[110px] w-[110px] shrink-0 rounded-full border-[4px] border-[#3355d4]/70 text-[#3355d4]/80"
+      style={{ transform: 'rotate(-7deg)' }}
       aria-hidden="true"
     >
-      <span className="absolute inset-[6px] rounded-full border border-dashed border-[#3355d4]/70" />
-      <span className="absolute inset-[13px] rounded-full border border-[#3355d4]/40" />
-      <span className="flex flex-col items-center justify-center uppercase leading-none">
-        <span className="text-[15px] font-black tracking-[0.08em]">OFPPT</span>
-        <span className="mt-0.5 text-[10px] font-black tracking-[0.12em]">ISTA</span>
-        <span className="text-[9px] font-black tracking-[0.1em]">Tiznit</span>
-      </span>
-    </div>
-  );
-}
-
-function DetailRow({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value?: string | null;
-}) {
-  return (
-    <div className="grid min-h-[46px] grid-cols-[120px_1fr] items-center gap-3 px-4 py-3 odd:bg-[#fafbfd] sm:grid-cols-[170px_1fr] sm:gap-4 sm:px-5">
-      <dt className="flex items-center gap-2 text-[13px] font-bold leading-tight text-[#1a2e4a]">
-        <Icon className="h-4 w-4 shrink-0 text-[#1a2e4a]" strokeWidth={2.2} />
-        <span>{label}</span>
-      </dt>
-      <dd className="min-w-0 break-words text-[14px] leading-snug text-slate-700">
-        {displayValue(value)}
-      </dd>
+      <div className="absolute inset-[6%] rounded-full border border-dashed border-[#3355d4]/50" />
+      <div className="absolute inset-[16%] rounded-full border border-[#3355d4]/35" />
+      <div className="absolute inset-[24%] rounded-full border border-dashed border-[#3355d4]/40" />
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center font-serif uppercase leading-[0.95]">
+        <span className="text-[13px] font-black tracking-[0.08em]">OFPPT</span>
+        <span className="mt-0.5 text-[9px] font-black tracking-[0.1em]">ISTA</span>
+        <span className="text-[9px] font-black tracking-[0.08em]">Tiznit</span>
+        <span className="mt-0.5 h-px w-10 bg-[#3355d4]/50" />
+        <span className="mt-0.5 text-[7px] font-black tracking-[0.08em]">Autorisation</span>
+      </div>
     </div>
   );
 }
@@ -126,74 +132,179 @@ export function AutorisationDetailsDialog({
   }
 
   const stagiaire = getAutorisationStagiaire(autorisation);
-  const statusLabel = getAutorisationStatutLabel(autorisation.statut).toLocaleUpperCase("fr-FR");
 
   const rows = [
-    { icon: UserRound, label: "Stagiaire", value: getStagiaireFullName(stagiaire) },
-    { icon: IdCard, label: "CEF", value: getAutorisationCef(autorisation) },
-    { icon: UsersRound, label: "Groupe", value: getAutorisationGroupe(autorisation) },
-    { icon: Presentation, label: "Formateur", value: getAutorisationFormateur(autorisation, currentUser) },
-    { icon: CalendarDays, label: "Date absence", value: compactDate(autorisation.absence?.date_absence) },
-    { icon: CalendarCheck, label: "Date création", value: compactDate(autorisation.created_at) },
-    { icon: Clock3, label: "Période", value: getPeriodeLabel(autorisation.absence?.periode) },
-    { icon: ClipboardPenLine, label: "Motif", value: autorisation.motif?.trim() || "-" },
+    {
+      icon: UserRound,
+      label: 'Stagiaire',
+      value: getStagiaireFullName(stagiaire),
+    },
+    {
+      icon: IdCard,
+      label: 'CEF',
+      value: getAutorisationCef(autorisation),
+    },
+    {
+      icon: UsersRound,
+      label: 'Groupe',
+      value: getAutorisationGroupe(autorisation),
+    },
+    {
+      icon: Presentation,
+      label: 'Formateur',
+      value: getAutorisationFormateur(autorisation, currentUser),
+    },
+    {
+      icon: CalendarDays,
+      label: 'Date absence',
+      value: compactDate(autorisation.absence?.date_absence),
+    },
+    {
+      icon: CalendarCheck,
+      label: 'Date création',
+      value: compactDate(autorisation.created_at),
+    },
+    {
+      icon: Clock3,
+      label: 'Période',
+      value: getPeriodeLabel(autorisation.absence?.periode),
+    },
+    {
+      icon: ClipboardPenLine,
+      label: 'Motif',
+      value: autorisation.motif?.trim() || '-',
+    },
   ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[calc(100vh-2rem)] w-[min(94vw,720px)] gap-0 overflow-y-auto p-0 sm:max-w-none">
-        <article className="overflow-hidden rounded-xl bg-white text-[#1a2e4a]">
-          {/* Brand accent bar */}
-          <div className="h-1.5 w-full bg-[#1a2e4a]" />
+      <DialogContent
+        showCloseButton={false}
+        className="max-h-[calc(100vh-2rem)] w-[min(720px,calc(100vw-2rem))] overflow-y-auto border-0 bg-transparent p-0 shadow-none sm:max-w-[720px]"
+      >
+        {/* ── Certificate document ── */}
+        <article className="relative border-[1.5px] border-[#071a3d] bg-[#fffefd] font-serif shadow-[0_14px_38px_rgba(7,26,61,0.16)]">
 
-          <div className="p-8 sm:p-10">
-            {/* Header: logo + institution on the left */}
-            <header className="flex items-center gap-4 border-b border-[#e8edf2] pb-5">
-              <Image
-                src="/ofppt-logo.png"
-                alt="Logo officiel OFPPT"
-                width={64}
-                height={64}
-                priority
-                className="h-14 w-14 shrink-0 object-contain"
+          {/* ── Top wave ── */}
+          <svg
+            className="pointer-events-none h-4 w-full text-[#d8e0ea]/40"
+            viewBox="0 0 1246 40"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            {Array.from({ length: 6 }).map((_, i) => (
+              <path
+                key={i}
+                d={`M0 ${20 + i * 4} C250 ${12 + i * 2}, 500 ${28 + i * 2}, 750 ${18 + i * 3} C1000 ${8 + i}, 1100 ${24 + i * 2}, 1246 ${16 + i * 3}`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1"
               />
-              <div className="leading-tight">
-                <p className="text-xl font-extrabold tracking-wide text-[#1a2e4a]">OFPPT</p>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                  ISTA Tiznit
+            ))}
+          </svg>
+
+          {/* ── Header ── */}
+          <div className="flex items-start justify-between px-6 pt-4 sm:px-8 sm:pt-5">
+            {/* Logo + Institution */}
+            <div className="flex items-center gap-3.5">
+              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl">
+                <Image
+                  src="/ofppt-logo.png"
+                  alt="Logo OFPPT"
+                  fill
+                  sizes="56px"
+                  className="object-contain bg-white"
+                />
+              </div>
+              <div>
+                <p className="text-[18px] font-black uppercase leading-none tracking-[0.14em] text-[#07315f] sm:text-[22px]">
+                  OFPPT
+                </p>
+                <p className="mt-1 text-[11px] font-black uppercase leading-none tracking-[0.16em] text-[#071a3d] sm:text-[13px]">
+                  ISTA TIZNIT
                 </p>
               </div>
-            </header>
-
-            {/* Centered title — never clipped, scales down gracefully */}
-            <div className="mt-6 text-center">
-              <DialogTitle className="text-[clamp(22px,5vw,30px)] font-extrabold uppercase leading-tight tracking-[0.06em] text-[#1a2e4a]">
-                Autorisation d&apos;Accès
-              </DialogTitle>
-              <ReferenceDivider />
-              <p className="mt-3 text-[13px] font-medium tracking-wide text-slate-500">
-                Code : {displayValue(autorisation.code)}
-              </p>
             </div>
 
-            {/* Two-column detail table */}
-            <dl className="mt-6 divide-y divide-[#e8edf2] overflow-hidden rounded-lg border border-[#e8edf2]">
-              {rows.map((row) => (
-                <DetailRow key={row.label} icon={row.icon} label={row.label} value={row.value} />
-              ))}
-            </dl>
-
-            {/* Footer: status badge (left) + official stamp (right) */}
-            <footer className="mt-7 flex items-end justify-between gap-4 border-t border-[#e8edf2] pt-6">
-              <div className="flex flex-col gap-2">
-                <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                  Statut de la demande
-                </span>
-                <StatusBadge statut={autorisation.statut} label={statusLabel} />
-              </div>
-              <OfpptStamp />
-            </footer>
+            {/* Close */}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="h-8 gap-1 rounded-none border-[#bfc8d2] bg-white px-3 font-sans text-[11px] font-semibold uppercase tracking-[0.1em] text-[#071a3d] shadow-none hover:bg-slate-50"
+            >
+              <X className="h-3.5 w-3.5" strokeWidth={2.2} />
+              Fermer
+            </Button>
           </div>
+
+          <div className="mt-2 px-6 sm:px-8">
+            <span className="block h-px bg-[#b8c0cc]" />
+          </div>
+
+          {/* ── Title ── */}
+          <div className="mt-4 text-center">
+            <DialogTitle className="font-serif text-[22px] font-black uppercase leading-none tracking-[0.1em] text-[#071a3d] sm:text-[28px]">
+              AUTORISATION D&apos;ACCÈS
+            </DialogTitle>
+
+            {/* Decorative divider */}
+            <div className="mx-auto mt-2.5 flex w-[180px] items-center justify-center gap-1.5">
+              <span className="h-px flex-1 bg-[#0b376d]/60" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#0b376d]" />
+              <span className="grid h-[14px] w-[14px] rotate-45 place-items-center border border-[#0b376d] bg-white">
+                <span className="block h-[7px] w-[7px] bg-[#0b376d]" />
+              </span>
+              <span className="h-1.5 w-1.5 rounded-full bg-[#0b376d]" />
+              <span className="h-px flex-1 bg-[#0b376d]/60" />
+            </div>
+
+            <p className="mt-2 font-serif text-[13px] font-black tracking-[0.1em] text-[#263047]">
+              Code : {autorisation.code}
+            </p>
+          </div>
+
+          {/* ── Data table ── */}
+          <div className="mx-5 mt-5 overflow-hidden rounded-md border border-[#d1d8e2] sm:mx-8">
+            {rows.map((row) => (
+              <DataRow
+                key={row.label}
+                icon={row.icon}
+                label={row.label}
+                value={row.value}
+              />
+            ))}
+            <DataRow
+              icon={BadgeCheck}
+              label="Statut"
+              value=""
+              isStatus
+              statut={autorisation.statut}
+            />
+          </div>
+
+          {/* ── Stamp row ── */}
+          <div className="flex justify-end px-6 pb-4 pt-3 sm:px-8 sm:pb-5 sm:pt-4">
+            <OfpptStamp />
+          </div>
+
+          {/* ── Bottom wave ── */}
+          <svg
+            className="pointer-events-none h-5 w-full text-[#d8e0ea]/35"
+            viewBox="0 0 1246 60"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            {Array.from({ length: 7 }).map((_, i) => (
+              <path
+                key={i}
+                d={`M0 ${30 + i * 5} C200 ${20 + i * 3}, 400 ${38 + i * 2}, 600 ${28 + i * 3} C800 ${18 + i}, 900 ${34 + i * 2}, 1246 ${24 + i * 3}`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1"
+              />
+            ))}
+          </svg>
         </article>
       </DialogContent>
     </Dialog>
