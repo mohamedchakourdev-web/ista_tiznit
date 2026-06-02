@@ -34,6 +34,7 @@ class AutorisationResource extends JsonResource
             'periode' => $this->whenLoaded('absence', fn () => $this->absence?->periode?->value),
             'is_read' => $this->is_read,
             'read_at' => $this->read_at?->toIso8601String(),
+            'read_by' => $this->read_by,
             'absence' => AbsenceResource::make($this->whenLoaded('absence')),
             'absences' => AbsenceResource::collection($this->whenLoaded('absences')),
             'stagiaire' => StagiaireResource::make($this->whenLoaded('stagiaire')),

@@ -270,13 +270,14 @@ export default function AutorisationsPage() {
       )}
 
       <Dialog open={open} onOpenChange={(value) => { if (!value) closeDialog(); }}>
-        <DialogContent className="sm:max-w-[560px]">
-          <form onSubmit={handleSubmit((values) => createMutation.mutate(toPayload(values)))} className="space-y-4">
-            <DialogHeader>
+        <DialogContent className="max-h-[calc(100vh-1.5rem)] overflow-y-auto sm:max-w-[560px]">
+          <form onSubmit={handleSubmit((values) => createMutation.mutate(toPayload(values)))} className="space-y-3">
+            <DialogHeader className="gap-1">
               <DialogTitle>Nouvelle autorisation</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
+            <div className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
                 <Label>Groupe</Label>
                 <Select
                   value={watchGroupeId}
@@ -302,7 +303,7 @@ export default function AutorisationsPage() {
                 {errors.groupe_id && <p className="text-[12px] text-destructive">{errors.groupe_id.message}</p>}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label>Recherche stagiaire</Label>
                 <SearchInput
                   value={stagiaireSearch}
@@ -311,8 +312,9 @@ export default function AutorisationsPage() {
                   className="w-full"
                 />
               </div>
+              </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label>Stagiaire</Label>
                 <Select
                   value={watchStagiaireId}
@@ -342,7 +344,7 @@ export default function AutorisationsPage() {
                 {errors.stagiaire_id && <p className="text-[12px] text-destructive">{errors.stagiaire_id.message}</p>}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label>Absences concernées (Optionnel)</Label>
                 <AbsencesMultiSelect
                   options={eligibleAbsences}
@@ -361,7 +363,8 @@ export default function AutorisationsPage() {
                 <p className="text-[12px] text-muted-foreground">Nombre sélectionné : {watchAbsenceIds.length}</p>
               </div>
 
-              <div className="space-y-2">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
                 <Label>Formateur concerné</Label>
                 <Select value={watchTargetUserId} onValueChange={(value) => setValue('target_user_id', value || '')}>
                   <SelectTrigger disabled={!watchStagiaireId || selectedStagiaireLoading} className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]">
@@ -376,7 +379,7 @@ export default function AutorisationsPage() {
                 {errors.target_user_id && <p className="text-[12px] text-destructive">{errors.target_user_id.message}</p>}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label>Statut</Label>
                 <Select value={watchStatut} onValueChange={(value) => setValue('statut', value as FormValues['statut'])}>
                   <SelectTrigger className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]">
@@ -388,17 +391,18 @@ export default function AutorisationsPage() {
                   </SelectContent>
                 </Select>
               </div>
+              </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label>Motif (optionnel)</Label>
                 <Textarea
                   {...register('motif')}
-                  className="min-h-[90px] rounded-lg border-border/50 bg-muted/30 text-[14px]"
+                  className="min-h-[64px] rounded-lg border-border/50 bg-muted/30 text-[14px]"
                 />
                 {errors.motif && <p className="text-[12px] text-destructive">{errors.motif.message}</p>}
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="px-4 py-3">
               <Button type="button" variant="outline" onClick={closeDialog} disabled={createMutation.isPending} className="rounded-lg">Annuler</Button>
               <Button type="submit" disabled={createMutation.isPending} className="rounded-lg bg-primary text-white hover:bg-primary-hover">
                 {createMutation.isPending ? 'Création...' : 'Créer'}

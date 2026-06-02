@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Bell, CheckCheck, LogOut, UserRound } from 'lucide-react';
 import { toast } from 'sonner';
 import { MobileSidebar } from './sidebar';
-import { authService, notificationService } from '@/services/api';
+import { authService, autorisationService, notificationService } from '@/services/api';
 import type { ApiCollectionResponse, Notification } from '@/types';
 import { useAuthStore } from '@/store/auth.store';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -156,13 +156,24 @@ export function Navbar() {
     if (notification.type === 'autorisation') {
       if (notification.autorisation) {
         setSelectedNotification(notification);
-        return;
       }
 
       try {
-        const response = await notificationService.show(notification.id);
-        if (response.data.autorisation) {
-          setSelectedNotification(response.data);
+        const autorisationId = notification.autorisation_id ?? notification.autorisation?.id;
+
+        if (autorisationId) {
+          const response = await autorisationService.formateurGet(autorisationId);
+          setSelectedNotification({
+            ...notification,
+            autorisation: response.data,
+          });
+          queryClient.invalidateQueries({ queryKey: ['formateur', 'autorisations'] });
+          queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        } else {
+          const response = await notificationService.show(notification.id);
+          if (response.data.autorisation) {
+            setSelectedNotification(response.data);
+          }
         }
       } catch {
         toast.error("Impossible de charger les details de l'autorisation.");

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\API\Notification;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\NotificationResource;
+use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
 class NotificationController extends Controller
@@ -20,6 +22,7 @@ class NotificationController extends Controller
             'absence.groupe',
             'autorisation.absence.stagiaire.groupe',
             'autorisation.absence.groupe',
+            'autorisation.absences.groupe',
             'autorisation.stagiaire.groupe',
             'autorisation.targetUser',
             'autorisation.validatedByUser',
@@ -99,6 +102,9 @@ class NotificationController extends Controller
             ]);
         }
 
+        $this->markLinkedAutorisationAsRead($notification, $user);
+        $notification->load($this->notificationRelations());
+
         return response()->json([
             'success' => true,
             'message' => 'Notification marquee comme lue',
@@ -125,5 +131,32 @@ class NotificationController extends Controller
             'message' => 'Toutes les notifications sont marquees comme lues',
             'data' => (object) [],
         ]);
+    }
+
+    /**
+     * Marquer l'autorisation liee comme lue lorsque son destinataire ouvre la notification.
+     */
+    private function markLinkedAutorisationAsRead(Notification $notification, User $user): void
+    {
+        $autorisation = $notification->autorisation;
+
+        if ($autorisation === null || $autorisation->target_user_id !== $user->id) {
+            return;
+        }
+
+        if ($autorisation->is_read && $autorisation->read_by !== null) {
+            return;
+        }
+
+        $values = [
+            'is_read' => true,
+            'read_by' => $user->id,
+        ];
+
+        if (! $autorisation->is_read || $autorisation->read_at === null) {
+            $values['read_at'] = now();
+        }
+
+        $autorisation->update($values);
     }
 }

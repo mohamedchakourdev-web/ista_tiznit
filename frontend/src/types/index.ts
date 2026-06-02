@@ -150,6 +150,7 @@ export interface Autorisation {
   date_validation: string | null;
   is_read: boolean;
   read_at: string | null;
+  read_by?: number | null;
   absence?: Absence;
   absences?: Absence[];
   stagiaire?: Stagiaire;

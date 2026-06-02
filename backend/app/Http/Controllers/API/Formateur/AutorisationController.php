@@ -82,6 +82,8 @@ class AutorisationController extends Controller
             ])
             ->findOrFail($id);
 
+        $this->markAsRead($autorisation, $user);
+
         return response()->json([
             'success' => true,
             'message' => 'Details de l autorisation',
@@ -103,12 +105,15 @@ class AutorisationController extends Controller
             ->findOrFail($id);
 
         // Modifier statut
+        $timestamp = now();
+
         $autorisation->update([
             'statut' => $request->statut,
             'validated_by' => $user->id,
-            'date_validation' => now(),
+            'date_validation' => $timestamp,
             'is_read' => true,
-            'read_at' => now(),
+            'read_at' => $timestamp,
+            'read_by' => $user->id,
         ]);
 
         // Notification pour gestionnaire/directeur
@@ -137,5 +142,26 @@ class AutorisationController extends Controller
             'message' => 'Autorisation mise a jour avec succes',
             'data' => new AutorisationResource($autorisation),
         ]);
+    }
+
+    /**
+     * Marquer l'autorisation comme lue par son destinataire.
+     */
+    private function markAsRead(Autorisation $autorisation, User $user): void
+    {
+        if ($autorisation->is_read && $autorisation->read_by !== null) {
+            return;
+        }
+
+        $values = [
+            'is_read' => true,
+            'read_by' => $user->id,
+        ];
+
+        if (! $autorisation->is_read || $autorisation->read_at === null) {
+            $values['read_at'] = now();
+        }
+
+        $autorisation->update($values);
     }
 }

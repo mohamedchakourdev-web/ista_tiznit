@@ -13,7 +13,7 @@ import {
   UsersRound,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import type { Autorisation, User } from '@/types';
+import type { Absence, Autorisation, User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import {
@@ -50,6 +50,76 @@ const statusTone: Record<Autorisation['statut'], { badge: string; dot: string }>
     dot: 'bg-red-600',
   },
 };
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+function getAbsenceDateKey(absence: Absence): string | null {
+  const rawDate = absence.date_absence;
+  const isoDate = rawDate.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+
+  if (isoDate) {
+    return isoDate;
+  }
+
+  const parsedDate = new Date(rawDate);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null;
+  }
+
+  return parsedDate.toISOString().slice(0, 10);
+}
+
+function getUtcDay(dateKey: string): number | null {
+  const [year, month, day] = dateKey.split('-').map(Number);
+
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  return Date.UTC(year, month - 1, day) / MS_PER_DAY;
+}
+
+function areConsecutiveDates(dateKeys: string[]): boolean {
+  const days = dateKeys.map(getUtcDay);
+
+  if (days.some((day) => day === null)) {
+    return false;
+  }
+
+  return days.every((day, index) => index === 0 || day === Number(days[index - 1]) + 1);
+}
+
+function summarizeAbsences(absences: Absence[]): string {
+  if (absences.length === 0) {
+    return '-';
+  }
+
+  if (absences.length === 1) {
+    const absence = absences[0];
+    return `${compactDate(absence.date_absence)} (${getPeriodeLabel(absence.periode)})`;
+  }
+
+  const dateKeys = Array.from(
+    new Set(absences.map(getAbsenceDateKey).filter((dateKey): dateKey is string => Boolean(dateKey))),
+  ).sort();
+
+  if (dateKeys.length === 0) {
+    return absences
+      .map((absence) => `${compactDate(absence.date_absence)} (${getPeriodeLabel(absence.periode)})`)
+      .join(', ');
+  }
+
+  if (dateKeys.length === 1) {
+    return `1 jour\n${compactDate(dateKeys[0])}`;
+  }
+
+  const countLabel = areConsecutiveDates(dateKeys)
+    ? `${dateKeys.length} jours d'absence`
+    : `${dateKeys.length} absences`;
+
+  return `${countLabel}\ndu ${compactDate(dateKeys[0])} au ${compactDate(dateKeys[dateKeys.length - 1])}`;
+}
 
 function StatusBadge({ statut }: { statut: Autorisation['statut'] }) {
   const tone = statusTone[statut];
@@ -92,7 +162,7 @@ function DataRow({
         {isStatus && statut ? (
           <StatusBadge statut={statut} />
         ) : (
-          <span className={multiline ? 'whitespace-normal break-words' : 'truncate'}>{value || '-'}</span>
+          <span className={multiline ? 'whitespace-pre-line break-words' : 'truncate'}>{value || '-'}</span>
         )}
       </div>
     </div>
@@ -140,11 +210,7 @@ export function AutorisationDetailsDialog({
       ? [autorisation.absence]
       : [];
 
-  const absencesText = absenceList.length > 0
-    ? absenceList
-      .map((absence) => `${compactDate(absence.date_absence)} (${getPeriodeLabel(absence.periode)})`)
-      .join(', ')
-    : '-';
+  const absencesText = summarizeAbsences(absenceList);
 
   const rows = [
     {

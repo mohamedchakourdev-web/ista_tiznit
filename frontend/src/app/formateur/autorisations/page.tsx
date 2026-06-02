@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Eye, FileCheck } from 'lucide-react';
 import { autorisationService } from '@/services/api';
-import type { Autorisation } from '@/types';
+import type { ApiCollectionResponse, Autorisation } from '@/types';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
 import { PageHeader } from '@/components/shared/page-header';
@@ -26,14 +26,16 @@ import {
 } from '@/utils/notification-details';
 
 export default function FormateurAutorisationsPage() {
+  const queryClient = useQueryClient();
   const currentUser = useAuthStore((state) => state.user);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statutFilter, setStatutFilter] = useState('');
   const [selectedAutorisation, setSelectedAutorisation] = useState<Autorisation | null>(null);
+  const autorisationsQueryKey = ['formateur', 'autorisations', page, search, statutFilter] as const;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['formateur', 'autorisations', page, search, statutFilter],
+    queryKey: autorisationsQueryKey,
     queryFn: () => autorisationService.formateurList({
       page,
       per_page: 10,
@@ -42,8 +44,34 @@ export default function FormateurAutorisationsPage() {
     }),
   });
 
+  const detailsMutation = useMutation({
+    mutationFn: (id: number) => autorisationService.formateurGet(id),
+    onSuccess: (response) => {
+      const updatedAutorisation = response.data;
+
+      setSelectedAutorisation((current) => (
+        current?.id === updatedAutorisation.id ? updatedAutorisation : current
+      ));
+
+      queryClient.setQueryData<ApiCollectionResponse<Autorisation> | undefined>(autorisationsQueryKey, (current) => {
+        if (!current) return current;
+
+        return {
+          ...current,
+          data: current.data.map((item) => (
+            item.id === updatedAutorisation.id ? updatedAutorisation : item
+          )),
+        };
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['formateur', 'autorisations'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+
   const openDetails = (autorisation: Autorisation) => {
     setSelectedAutorisation(autorisation);
+    detailsMutation.mutate(autorisation.id);
   };
 
   const closeDetails = () => {
