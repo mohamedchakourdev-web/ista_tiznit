@@ -62,21 +62,6 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
             });
         });
 
-    Route::prefix('directeur')
-        ->middleware(['role:directeur'])
-        ->group(function (): void {
-            Route::middleware('permission:manage users')->group(function (): void {
-                Route::get('/users', [UserController::class, 'index']);
-                Route::post('/users', [UserController::class, 'store']);
-                Route::get('/users/{id}', [UserController::class, 'show'])
-                    ->whereNumber('id');
-                Route::put('/users/{id}', [UserController::class, 'update'])
-                    ->whereNumber('id');
-                Route::delete('/users/{id}', [UserController::class, 'destroy'])
-                    ->whereNumber('id');
-            });
-        });
-
     Route::prefix('gestionnaire')
         ->middleware(['role:directeur|gestionnaire'])
         ->group(function (): void {
