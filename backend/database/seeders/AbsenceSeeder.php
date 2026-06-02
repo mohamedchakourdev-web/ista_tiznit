@@ -84,7 +84,7 @@ class AbsenceSeeder extends Seeder
                             $isRead = $statut !== AutorisationStatutEnum::EnAttente && fake()->boolean(70);
 
                             $autorisation = Autorisation::factory()->create([
-                                'absence_id' => $absence->id,
+                                'stagiaire_id' => $stagiaire->id,
                                 'target_user_id' => $targetUser->id,
                                 'statut' => $statut,
                                 'date_validation' => $statut === AutorisationStatutEnum::EnAttente
@@ -99,6 +99,8 @@ class AbsenceSeeder extends Seeder
                                 'created_by' => $gestionnaire?->id,
                                 'updated_by' => $statut === AutorisationStatutEnum::EnAttente ? null : $targetUser->id,
                             ]);
+
+                            $absence->update(['autorisation_id' => $autorisation->id]);
 
                             Notification::factory()->create([
                                 'user_id' => $targetUser->id,

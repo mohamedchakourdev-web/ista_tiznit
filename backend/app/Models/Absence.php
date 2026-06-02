@@ -10,7 +10,6 @@ use Database\Factories\AbsenceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -29,6 +28,7 @@ class Absence extends Model
     protected $fillable = [
         'stagiaire_id',
         'groupe_id',
+        'autorisation_id',
         'date_absence',
         'periode',
         'type',
@@ -70,11 +70,11 @@ class Absence extends Model
     }
 
     /**
-     * Get the authorization attached to the absence.
+     * Get the authorization this absence is attached to.
      */
-    public function autorisation(): HasOne
+    public function autorisation(): BelongsTo
     {
-        return $this->hasOne(Autorisation::class);
+        return $this->belongsTo(Autorisation::class);
     }
 
     /**

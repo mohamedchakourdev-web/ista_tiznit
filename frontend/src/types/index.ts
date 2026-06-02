@@ -126,6 +126,7 @@ export interface Absence {
   id: number;
   stagiaire_id: number;
   groupe_id: number;
+  autorisation_id?: number | null;
   date_absence: string;
   periode: Periode;
   type: AbsenceType;
@@ -150,6 +151,7 @@ export interface Autorisation {
   is_read: boolean;
   read_at: string | null;
   absence?: Absence;
+  absences?: Absence[];
   stagiaire?: Stagiaire;
   target_user?: User;
   validated_by_user?: User;
@@ -275,10 +277,11 @@ export interface StoreAbsencePayload {
 
 export interface StoreAutorisationPayload {
   absence_id?: number | null;
+  absence_ids?: number[] | null;
   stagiaire_id?: number | null;
   target_user_id: number;
   statut?: Extract<AutorisationStatut, 'validee' | 'refusee'>;
-  motif: string;
+  motif?: string | null;
 }
 
 export interface UpdateAutorisationStatusPayload {

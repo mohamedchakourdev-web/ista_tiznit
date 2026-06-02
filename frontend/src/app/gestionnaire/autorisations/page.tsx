@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,6 +11,7 @@ import {
   absenceService,
   autorisationService,
   getApiErrorMessage,
+  groupeService,
   stagiaireService,
 } from '@/services/api';
 import type { Autorisation, StoreAutorisationPayload } from '@/types';
@@ -20,42 +21,55 @@ import { Pagination } from '@/components/shared/pagination';
 import { EmptyState } from '@/components/shared/empty-state';
 import { TableSkeleton } from '@/components/shared/loading-skeleton';
 import { AutorisationStatusBadge, ReadStatusBadge } from '@/components/shared/status-badge';
+import { AbsencesMultiSelect } from '@/components/shared/absences-multi-select';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getStagiaireFullName, getUserFullName, compactDate, getPeriodeLabel } from '@/utils/domain';
+import { getStagiaireFullName, getUserFullName } from '@/utils/domain';
 import { AutorisationDetailsDialog } from '@/components/shared/autorisation-details-dialog';
 import { useAuthStore } from '@/store/auth.store';
 
 const schema = z.object({
+  groupe_id: z.string().min(1, 'Groupe requis'),
   stagiaire_id: z.string().min(1, 'Stagiaire requis'),
-  absence_id: z.string().optional(),
+  absence_ids: z.array(z.string()).optional(),
   target_user_id: z.string().min(1, 'Formateur requis'),
   statut: z.enum(['validee', 'refusee']),
-  motif: z.string().trim().min(1, 'Motif requis'),
+  motif: z.string().trim().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
 
 const defaultValues: FormValues = {
+  groupe_id: '',
   stagiaire_id: '',
-  absence_id: '',
+  absence_ids: [],
   target_user_id: '',
   statut: 'validee',
   motif: '',
 };
 
 function toPayload(values: FormValues): StoreAutorisationPayload {
+  const motif = values.motif?.trim();
+
   return {
     stagiaire_id: Number(values.stagiaire_id),
-    absence_id: values.absence_id ? Number(values.absence_id) : null,
+    absence_ids: (values.absence_ids ?? []).map(Number),
     target_user_id: Number(values.target_user_id),
     statut: values.statut,
-    motif: values.motif,
+    motif: motif ? motif : null,
   };
+}
+
+function matchesStagiaireSearch(haystack: string, term: string): boolean {
+  const normalized = term.trim().toLowerCase();
+  if (!normalized) return true;
+
+  const tokens = normalized.split(/\s+/).filter(Boolean);
+  return tokens.every((token) => haystack.includes(token));
 }
 
 export default function AutorisationsPage() {
@@ -68,13 +82,14 @@ export default function AutorisationsPage() {
   const [open, setOpen] = useState(false);
   const [selectedAutorisation, setSelectedAutorisation] = useState<Autorisation | null>(null);
 
-  const { register, handleSubmit, reset, setValue, control, formState: { errors } } = useForm<FormValues>({
+  const { handleSubmit, reset, setValue, register, control, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues,
   });
 
+  const watchGroupeId = useWatch({ control, name: 'groupe_id' });
   const watchStagiaireId = useWatch({ control, name: 'stagiaire_id' });
-  const watchAbsenceId = useWatch({ control, name: 'absence_id' });
+  const watchAbsenceIds = useWatch({ control, name: 'absence_ids' }) ?? [];
   const watchTargetUserId = useWatch({ control, name: 'target_user_id' });
   const watchStatut = useWatch({ control, name: 'statut' });
 
@@ -88,14 +103,41 @@ export default function AutorisationsPage() {
     }),
   });
 
-  const { data: stagiaires, isLoading: stagiairesLoading } = useQuery({
-    queryKey: ['stagiaires', 'autorisation-form', stagiaireSearch],
-    queryFn: () => stagiaireService.list({
-      per_page: 10,
-      search: stagiaireSearch || undefined,
-    }),
+  const { data: groupes, isLoading: groupesLoading } = useQuery({
+    queryKey: ['groupes', 'autorisation-form'],
+    queryFn: () => groupeService.list({ per_page: 100 }),
     enabled: open,
   });
+
+  const { data: stagiaires, isLoading: stagiairesLoading } = useQuery({
+    queryKey: ['stagiaires', 'autorisation-form', watchGroupeId],
+    queryFn: () => stagiaireService.list({
+      groupe_id: Number(watchGroupeId),
+      per_page: 100,
+    }),
+    enabled: open && Boolean(watchGroupeId),
+  });
+
+  // Recherche limitée au groupe : filtrage client par nom / prénom / nom complet / CEF.
+  const filteredStagiaires = useMemo(() => {
+    const list = stagiaires?.data ?? [];
+    if (!stagiaireSearch.trim()) return list;
+
+    return list.filter((stagiaire) => {
+      const haystack = [
+        stagiaire.prenom,
+        stagiaire.nom,
+        `${stagiaire.prenom} ${stagiaire.nom}`,
+        `${stagiaire.nom} ${stagiaire.prenom}`,
+        stagiaire.cef,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+      return matchesStagiaireSearch(haystack, stagiaireSearch);
+    });
+  }, [stagiaires?.data, stagiaireSearch]);
 
   const { data: selectedStagiaire, isLoading: selectedStagiaireLoading } = useQuery({
     queryKey: ['stagiaires', 'details', watchStagiaireId],
@@ -235,11 +277,37 @@ export default function AutorisationsPage() {
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
+                <Label>Groupe</Label>
+                <Select
+                  value={watchGroupeId}
+                  onValueChange={(value) => {
+                    setValue('groupe_id', value || '');
+                    setValue('stagiaire_id', '');
+                    setValue('absence_ids', []);
+                    setValue('target_user_id', '');
+                    setStagiaireSearch('');
+                  }}
+                >
+                  <SelectTrigger className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]">
+                    <SelectValue placeholder={groupesLoading ? 'Chargement...' : 'Sélectionner un groupe'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {groupes?.data.map((groupe) => (
+                      <SelectItem key={groupe.id} value={String(groupe.id)}>
+                        {groupe.nom}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.groupe_id && <p className="text-[12px] text-destructive">{errors.groupe_id.message}</p>}
+              </div>
+
+              <div className="space-y-2">
                 <Label>Recherche stagiaire</Label>
                 <SearchInput
                   value={stagiaireSearch}
                   onChange={setStagiaireSearch}
-                  placeholder="Nom, prénom ou CEF..."
+                  placeholder="Nom, prénom, nom complet ou CEF..."
                   className="w-full"
                 />
               </div>
@@ -250,17 +318,23 @@ export default function AutorisationsPage() {
                   value={watchStagiaireId}
                   onValueChange={(value) => {
                     setValue('stagiaire_id', value || '');
-                    setValue('absence_id', '');
+                    setValue('absence_ids', []);
                     setValue('target_user_id', '');
                   }}
                 >
-                  <SelectTrigger className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]">
-                    <SelectValue placeholder={stagiairesLoading ? 'Chargement...' : 'Sélectionner un stagiaire'} />
+                  <SelectTrigger disabled={!watchGroupeId || stagiairesLoading} className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]">
+                    <SelectValue placeholder={
+                      !watchGroupeId
+                        ? 'Sélectionner d\'abord un groupe'
+                        : stagiairesLoading
+                          ? 'Chargement...'
+                          : 'Sélectionner un stagiaire'
+                    } />
                   </SelectTrigger>
                   <SelectContent>
-                    {stagiaires?.data.map((stagiaire) => (
+                    {filteredStagiaires.map((stagiaire) => (
                       <SelectItem key={stagiaire.id} value={String(stagiaire.id)}>
-                        {getStagiaireFullName(stagiaire)} - {stagiaire.cef}
+                        {getStagiaireFullName(stagiaire)} - CEF {stagiaire.cef} - {stagiaire.groupe?.nom ?? '-'}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -269,31 +343,22 @@ export default function AutorisationsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Absence concernée (Optionnel)</Label>
-                <Select
-                  value={watchAbsenceId}
-                  onValueChange={(value) => setValue('absence_id', value || '')}
-                >
-                  <SelectTrigger disabled={!watchStagiaireId || absencesLoading} className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]">
-                    <SelectValue placeholder={
-                      !watchStagiaireId 
-                        ? 'Sélectionner d\'abord un stagiaire' 
-                        : absencesLoading 
-                          ? 'Chargement des absences...' 
-                          : eligibleAbsences.length === 0 
-                            ? 'Aucune absence à justifier' 
-                            : 'Sélectionner une absence'
-                    } />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {eligibleAbsences.map((absence) => (
-                      <SelectItem key={absence.id} value={String(absence.id)}>
-                        Le {compactDate(absence.date_absence)} - {getPeriodeLabel(absence.periode)} ({absence.type === 'absence' ? 'Absence' : 'Retard'})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.absence_id && <p className="text-[12px] text-destructive">{errors.absence_id.message}</p>}
+                <Label>Absences concernées (Optionnel)</Label>
+                <AbsencesMultiSelect
+                  options={eligibleAbsences}
+                  value={watchAbsenceIds}
+                  onChange={(next) => setValue('absence_ids', next)}
+                  disabled={!watchStagiaireId}
+                  loading={absencesLoading}
+                  placeholder={
+                    !watchStagiaireId
+                      ? 'Sélectionner d\'abord un stagiaire'
+                      : eligibleAbsences.length === 0
+                        ? 'Aucune absence à justifier'
+                        : 'Sélectionner une ou plusieurs absences'
+                  }
+                />
+                <p className="text-[12px] text-muted-foreground">Nombre sélectionné : {watchAbsenceIds.length}</p>
               </div>
 
               <div className="space-y-2">
@@ -325,7 +390,7 @@ export default function AutorisationsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Motif</Label>
+                <Label>Motif (optionnel)</Label>
                 <Textarea
                   {...register('motif')}
                   className="min-h-[90px] rounded-lg border-border/50 bg-muted/30 text-[14px]"

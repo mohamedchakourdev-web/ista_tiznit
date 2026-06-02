@@ -30,6 +30,7 @@ class AutorisationController extends Controller
         $query = Autorisation::with([
             'absence.stagiaire.groupe',
             'absence.groupe.filiere',
+            'absences.groupe',
             'stagiaire.groupe.filiere',
             'targetUser',
             'validatedByUser',
@@ -97,6 +98,8 @@ class AutorisationController extends Controller
         $autorisation = Autorisation::with([
             'absence.stagiaire.groupe.filiere',
             'absence.groupe.formateurs',
+            'absences.stagiaire.groupe.filiere',
+            'absences.groupe',
             'stagiaire.groupe.formateurs',
             'targetUser',
             'validatedByUser',
@@ -118,21 +121,27 @@ class AutorisationController extends Controller
 
         $data = $request->validated();
 
+        $absenceIds = $this->resolveAbsenceIds($data);
+
         DB::beginTransaction();
 
         try {
-            $absence = null;
+            $absences = $absenceIds !== []
+                ? Absence::with('stagiaire.groupe.formateurs')->whereKey($absenceIds)->get()
+                : collect();
 
-            if (! empty($data['absence_id'])) {
-                $absence = Absence::with(['stagiaire.groupe.formateurs', 'groupe.formateurs'])
-                    ->findOrFail((int) $data['absence_id']);
+            $stagiaire = null;
+
+            if (! empty($data['stagiaire_id'])) {
+                $stagiaire = Stagiaire::with('groupe.formateurs')
+                    ->findOrFail((int) $data['stagiaire_id']);
+            } elseif ($absences->isNotEmpty()) {
+                $stagiaire = $absences->first()->stagiaire;
             }
-
-            $stagiaire = $absence?->stagiaire;
 
             if ($stagiaire === null) {
                 $stagiaire = Stagiaire::with('groupe.formateurs')
-                    ->findOrFail((int) $data['stagiaire_id']);
+                    ->findOrFail((int) ($data['stagiaire_id'] ?? 0));
             }
 
             $formateur = User::where('id', (int) $data['target_user_id'])
@@ -147,16 +156,21 @@ class AutorisationController extends Controller
             ], true);
 
             $autorisation = Autorisation::create([
-                'absence_id' => $absence?->id,
                 'stagiaire_id' => $stagiaire->id,
                 'target_user_id' => $formateur->id,
                 'code' => $this->generateCode(),
-                'motif' => $data['motif'],
+                'motif' => $data['motif'] ?? null,
                 'statut' => $statut,
                 'date_validation' => $isDecisionStatut ? now() : null,
                 'validated_by' => $isDecisionStatut ? $user->id : null,
                 'created_by' => $user->id,
             ]);
+
+            if ($absenceIds !== []) {
+                Absence::whereKey($absenceIds)
+                    ->whereNull('autorisation_id')
+                    ->update(['autorisation_id' => $autorisation->id]);
+            }
 
             $statutLabel = match ($statut) {
                 AutorisationStatutEnum::Validee->value => 'acceptee',
@@ -181,6 +195,8 @@ class AutorisationController extends Controller
             $autorisation->load([
                 'absence.stagiaire.groupe.filiere',
                 'absence.groupe.formateurs',
+                'absences.stagiaire.groupe.filiere',
+                'absences.groupe',
                 'stagiaire.groupe.formateurs',
                 'targetUser',
                 'validatedByUser',
@@ -198,6 +214,26 @@ class AutorisationController extends Controller
             'message' => 'Autorisation creee',
             'data' => new AutorisationResource($autorisation),
         ], 201);
+    }
+
+    /**
+     * Resolve the unique list of selected absence ids from validated data.
+     *
+     * @param  array<string, mixed>  $data
+     * @return list<int>
+     */
+    private function resolveAbsenceIds(array $data): array
+    {
+        $rawIds = $data['absence_ids'] ?? (isset($data['absence_id']) ? [$data['absence_id']] : []);
+
+        if (! is_array($rawIds)) {
+            $rawIds = [$rawIds];
+        }
+
+        return array_values(array_unique(array_map(
+            'intval',
+            array_filter($rawIds, static fn ($id): bool => $id !== null && $id !== ''),
+        )));
     }
 
     /**

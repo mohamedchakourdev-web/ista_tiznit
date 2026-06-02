@@ -24,6 +24,7 @@ class AutorisationController extends Controller
             ->with([
                 'absence.stagiaire',
                 'absence.groupe',
+                'absences.groupe',
                 'stagiaire.groupe',
             ])
             ->orderBy('created_at', 'desc');
@@ -76,6 +77,7 @@ class AutorisationController extends Controller
             ->with([
                 'absence.stagiaire',
                 'absence.groupe',
+                'absences.groupe',
                 'stagiaire.groupe',
             ])
             ->findOrFail($id);
@@ -126,6 +128,7 @@ class AutorisationController extends Controller
         $autorisation->load([
             'absence.stagiaire',
             'absence.groupe',
+            'absences.groupe',
             'stagiaire.groupe',
         ]);
 

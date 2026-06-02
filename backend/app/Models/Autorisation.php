@@ -9,6 +9,8 @@ use Database\Factories\AutorisationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -25,7 +27,6 @@ class Autorisation extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'absence_id',
         'stagiaire_id',
         'target_user_id',
         'code',
@@ -57,11 +58,22 @@ class Autorisation extends Model
     }
 
     /**
-     * Get the absence linked to the authorization.
+     * Get every absence covered by the authorization.
      */
-    public function absence(): BelongsTo
+    public function absences(): HasMany
     {
-        return $this->belongsTo(Absence::class);
+        return $this->hasMany(Absence::class);
+    }
+
+    /**
+     * Get the primary (oldest) absence covered by the authorization.
+     *
+     * Kept for backward-compatible display of a single representative absence;
+     * it reads the same source of truth as {@see self::absences()}.
+     */
+    public function absence(): HasOne
+    {
+        return $this->hasOne(Absence::class)->oldestOfMany();
     }
 
     /**

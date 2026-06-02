@@ -7,7 +7,6 @@ import {
   CalendarCheck,
   CalendarDays,
   ClipboardPenLine,
-  Clock3,
   IdCard,
   Presentation,
   UserRound,
@@ -72,12 +71,14 @@ function DataRow({
   value,
   isStatus = false,
   statut,
+  multiline = false,
 }: {
   icon: LucideIcon;
   label: string;
   value: string;
   isStatus?: boolean;
   statut?: Autorisation['statut'];
+  multiline?: boolean;
 }) {
   return (
     <div className="flex border-b border-dotted border-[#d1d8e2] last:border-b-0">
@@ -91,7 +92,7 @@ function DataRow({
         {isStatus && statut ? (
           <StatusBadge statut={statut} />
         ) : (
-          <span className="truncate">{value || '-'}</span>
+          <span className={multiline ? 'whitespace-normal break-words' : 'truncate'}>{value || '-'}</span>
         )}
       </div>
     </div>
@@ -133,6 +134,18 @@ export function AutorisationDetailsDialog({
 
   const stagiaire = getAutorisationStagiaire(autorisation);
 
+  const absenceList = autorisation.absences && autorisation.absences.length > 0
+    ? autorisation.absences
+    : autorisation.absence
+      ? [autorisation.absence]
+      : [];
+
+  const absencesText = absenceList.length > 0
+    ? absenceList
+      .map((absence) => `${compactDate(absence.date_absence)} (${getPeriodeLabel(absence.periode)})`)
+      .join(', ')
+    : '-';
+
   const rows = [
     {
       icon: UserRound,
@@ -156,18 +169,14 @@ export function AutorisationDetailsDialog({
     },
     {
       icon: CalendarDays,
-      label: 'Date absence',
-      value: compactDate(autorisation.absence?.date_absence),
+      label: 'Absence(s)',
+      value: absencesText,
+      multiline: true,
     },
     {
       icon: CalendarCheck,
       label: 'Date création',
       value: compactDate(autorisation.created_at),
-    },
-    {
-      icon: Clock3,
-      label: 'Période',
-      value: getPeriodeLabel(autorisation.absence?.periode),
     },
     {
       icon: ClipboardPenLine,
@@ -272,6 +281,7 @@ export function AutorisationDetailsDialog({
                 icon={row.icon}
                 label={row.label}
                 value={row.value}
+                multiline={'multiline' in row ? row.multiline : false}
               />
             ))}
             <DataRow

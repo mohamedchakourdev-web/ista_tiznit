@@ -56,11 +56,15 @@ class AutorisationDetailsTest extends TestCase
 
         $targetUser = User::factory()->formateur()->create();
 
-        return Autorisation::factory()->create([
-            'absence_id' => $absence->id,
+        $autorisation = Autorisation::factory()->create([
+            'stagiaire_id' => $absence->stagiaire_id,
             'target_user_id' => $targetUser->id,
             'created_by' => $creator->id,
         ]);
+
+        $absence->update(['autorisation_id' => $autorisation->id]);
+
+        return $autorisation;
     }
 
     private function createAutorisationNotification(User $recipient, Autorisation $autorisation): Notification

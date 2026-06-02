@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Enums\AutorisationStatutEnum;
-use App\Models\Absence;
 use App\Models\Autorisation;
+use App\Models\Stagiaire;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -30,19 +30,14 @@ class AutorisationFactory extends Factory
     public function definition(): array
     {
         return [
-            'absence_id' => Absence::factory(),
-            'stagiaire_id' => static function (array $attributes): int {
-                return Absence::query()
-                    ->findOrFail($attributes['absence_id'])
-                    ->stagiaire_id;
-            },
+            'stagiaire_id' => Stagiaire::factory(),
             'target_user_id' => static function (array $attributes): int {
-                $absence = Absence::query()
+                $stagiaire = Stagiaire::query()
                     ->with('groupe.formateurs')
-                    ->findOrFail($attributes['absence_id']);
+                    ->find($attributes['stagiaire_id']);
 
-                if ($absence->groupe->formateurs->isNotEmpty()) {
-                    return $absence->groupe->formateurs->random()->id;
+                if ($stagiaire !== null && $stagiaire->groupe?->formateurs->isNotEmpty()) {
+                    return $stagiaire->groupe->formateurs->random()->id;
                 }
 
                 return User::factory()->formateur()->create()->id;
