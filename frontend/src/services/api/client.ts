@@ -6,7 +6,13 @@ export interface ApiErrorPayload {
   errors?: Record<string, string[]>;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+const rawApiBaseUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+
+if (!rawApiBaseUrl) {
+  throw new Error('NEXT_PUBLIC_API_URL must be defined for the frontend API client.');
+}
+
+const API_BASE_URL = rawApiBaseUrl.replace(/\/$/, '');
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,

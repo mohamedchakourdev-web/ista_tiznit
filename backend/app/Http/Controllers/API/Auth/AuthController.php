@@ -141,6 +141,7 @@ class AuthController extends Controller
         ]);
 
         $user = User::where('email', $request->email)->firstOrFail();
+        $previousPassword = $user->password;
 
         // Génère un mot de passe aléatoire de 10 caractères lisibles
         $tempPassword = Str::random(10);
@@ -152,12 +153,19 @@ class AuthController extends Controller
         try {
             // Envoie l'email
             Mail::to($user->email)->send(new TemporaryPasswordMail($user, $tempPassword));
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Erreur SMTP lors de l\'envoi du mot de passe temporaire: ' . $e->getMessage());
+        } catch (\Throwable $exception) {
+            User::query()->whereKey($user->id)->update([
+                'password' => $previousPassword,
+            ]);
+
+            \Illuminate\Support\Facades\Log::error('Erreur SMTP lors de l\'envoi du mot de passe temporaire.', [
+                'user_id' => $user->id,
+                'message' => $exception->getMessage(),
+            ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Impossible d\'envoyer l\'email. Veuillez vérifier la configuration SMTP dans le fichier .env.',
+                'message' => 'Impossible d\'envoyer l\'email pour le moment. Veuillez réessayer plus tard.',
             ], 500);
         }
 
