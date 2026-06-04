@@ -18,10 +18,53 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->seedProductionAdmin();
+
+            return;
+        }
+
+        $this->seedDevelopmentUsers();
+    }
+
+    /**
+     * Create or update the production administrator from environment variables.
+     */
+    private function seedProductionAdmin(): void
+    {
+        $email = trim((string) env('ADMIN_EMAIL', ''));
+        $password = (string) env('ADMIN_PASSWORD', '');
+
+        if ($email === '' || $password === '') {
+            $this->command?->warn('AdminSeeder: ADMIN_EMAIL et ADMIN_PASSWORD sont requis en production.');
+
+            return;
+        }
+
+        /** @var User $user */
+        $user = User::query()->updateOrCreate(
+            ['email' => $email],
+            [
+                'nom' => trim((string) env('ADMIN_NOM', 'Admin')),
+                'prenom' => trim((string) env('ADMIN_PRENOM', 'OFPPT')),
+                'telephone' => trim((string) env('ADMIN_TELEPHONE', '')) ?: null,
+                'password' => $password,
+                'type' => null,
+                'is_active' => true,
+            ],
+        );
+
+        $user->syncRoles(['directeur']);
+    }
+
+    /**
+     * Seed local/demo users for non-production environments.
+     */
+    private function seedDevelopmentUsers(): void
+    {
         $users = [
             [
                 'role' => 'directeur',
-                'state' => 'directeur',
                 'attributes' => [
                     'nom' => 'Bennani',
                     'prenom' => 'Omar',
@@ -35,7 +78,6 @@ class AdminSeeder extends Seeder
             ],
             [
                 'role' => 'gestionnaire',
-                'state' => 'gestionnaire',
                 'attributes' => [
                     'nom' => 'Ait El Haj',
                     'prenom' => 'Sara',
@@ -49,7 +91,6 @@ class AdminSeeder extends Seeder
             ],
             [
                 'role' => 'formateur',
-                'state' => 'formateur',
                 'attributes' => [
                     'nom' => 'El Idrissi',
                     'prenom' => 'Youssef',
@@ -63,7 +104,6 @@ class AdminSeeder extends Seeder
             ],
             [
                 'role' => 'formateur',
-                'state' => 'formateur',
                 'attributes' => [
                     'nom' => 'Chraibi',
                     'prenom' => 'Meryem',
@@ -77,7 +117,6 @@ class AdminSeeder extends Seeder
             ],
             [
                 'role' => 'formateur',
-                'state' => 'formateur',
                 'attributes' => [
                     'nom' => 'Tazi',
                     'prenom' => 'Nabil',

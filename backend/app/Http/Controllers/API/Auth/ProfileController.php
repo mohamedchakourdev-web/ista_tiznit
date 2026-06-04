@@ -63,7 +63,8 @@ class ProfileController extends Controller
         $previousAvatar = $user->avatar;
         $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'jpg');
         $filename = sprintf('user-%d-%s.%s', $user->id, Str::uuid()->toString(), $extension);
-        $path = $file->storeAs('avatars', $filename, 'public');
+        $avatarDisk = (string) config('ofppt.avatar_disk', 'public');
+        $path = $file->storeAs('avatars', $filename, $avatarDisk);
 
         if (! is_string($path) || $path === '') {
             throw ValidationException::withMessages([
@@ -128,8 +129,10 @@ class ProfileController extends Controller
             return;
         }
 
-        if (Storage::disk('public')->exists($avatar)) {
-            Storage::disk('public')->delete($avatar);
+        $avatarDisk = (string) config('ofppt.avatar_disk', 'public');
+
+        if (Storage::disk($avatarDisk)->exists($avatar)) {
+            Storage::disk($avatarDisk)->delete($avatar);
         }
     }
 }

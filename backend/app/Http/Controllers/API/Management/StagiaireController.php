@@ -95,7 +95,8 @@ class StagiaireController extends Controller
             'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
         ]);
 
-        $path = $request->file('file')->store('imports');
+        $importDisk = (string) config('ofppt.import_disk', 'local');
+        $path = $request->file('file')->store('imports', $importDisk);
 
         ImportStagiairesJob::dispatch($path);
 

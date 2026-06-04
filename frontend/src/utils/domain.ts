@@ -27,11 +27,15 @@ export function getAvatarUrl(user?: Pick<User, 'avatar'> | null): string | null 
     return avatar;
   }
 
+  if (avatar.startsWith('/storage/')) {
+    return avatar;
+  }
+
   if (avatar.startsWith('/')) {
     return avatar;
   }
 
-  return `/storage/${avatar}`;
+  return `/storage/${avatar.replace(/^\/+/, '')}`;
 }
 
 export function getRoleLabel(role?: UserRole | null): string {

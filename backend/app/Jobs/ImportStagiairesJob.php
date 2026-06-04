@@ -28,24 +28,31 @@ class ImportStagiairesJob implements ShouldQueue
      */
     public function handle(): void
     {
-        if (! Storage::disk('local')->exists($this->filePath)) {
+        $disk = $this->importDisk();
+
+        if (! Storage::disk($disk)->exists($this->filePath)) {
             Log::warning('Fichier import stagiaires introuvable.', [
                 'file' => $this->filePath,
+                'disk' => $disk,
             ]);
 
             return;
         }
 
+        $absolutePath = Storage::disk($disk)->path($this->filePath);
+
         Log::info('Import des stagiaires demarre.', [
             'file' => $this->filePath,
+            'disk' => $disk,
         ]);
 
-        Excel::import(new StagiairesImport, $this->filePath, 'local');
+        Excel::import(new StagiairesImport, $absolutePath);
 
-        Storage::disk('local')->delete($this->filePath);
+        Storage::disk($disk)->delete($this->filePath);
 
         Log::info('Import des stagiaires termine.', [
             'file' => $this->filePath,
+            'disk' => $disk,
         ]);
     }
 
@@ -54,9 +61,21 @@ class ImportStagiairesJob implements ShouldQueue
      */
     public function failed(Throwable $exception): void
     {
+        $disk = $this->importDisk();
+
+        if (Storage::disk($disk)->exists($this->filePath)) {
+            Storage::disk($disk)->delete($this->filePath);
+        }
+
         Log::error('Le job d\'import des stagiaires a echoue.', [
             'file' => $this->filePath,
+            'disk' => $disk,
             'message' => $exception->getMessage(),
         ]);
+    }
+
+    private function importDisk(): string
+    {
+        return (string) config('ofppt.import_disk', 'local');
     }
 }

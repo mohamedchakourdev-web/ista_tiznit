@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { BookOpen, ChevronRight, MessageCircle, Users } from 'lucide-react';
 import { formateurService } from '@/services/api';
@@ -14,16 +14,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { getGroupeFiliereName, getStagiaireFullName } from '@/utils/domain';
 
 export default function FormateurGroupesPage() {
-  const groupeIdFromUrl = Number(new URLSearchParams(window.location.search).get('groupe'));
+  const [selectedGroupe, setSelectedGroupe] = useState<number>(0);
 
-  const [selectedGroupe, setSelectedGroupe] = useState<number>(groupeIdFromUrl || 0);
+  useEffect(() => {
+    const groupe = Number(new URLSearchParams(window.location.search).get('groupe'));
+    if (groupe > 0) {
+      setSelectedGroupe(groupe);
+    }
+  }, []);
 
   const { data: groupes, isLoading: groupesLoading } = useQuery({
     queryKey: ['formateur', 'groupes'],
     queryFn: () => formateurService.groupes({ per_page: 100 }),
   });
-
-  // useEffect removed; state initialized directly from URL param above.
 
   const { data: stagiaires, isLoading: stagiairesLoading } = useQuery({
     queryKey: ['formateur', 'stagiaires', selectedGroupe],

@@ -7,6 +7,7 @@ namespace App\Http\Resources;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -55,10 +56,19 @@ class UserResource extends JsonResource
             return $this->avatar;
         }
 
-        if (Str::startsWith($this->avatar, '/')) {
-            return $this->avatar;
+        if (Str::startsWith($this->avatar, '/storage/')) {
+            return rtrim((string) config('app.url'), '/').$this->avatar;
         }
 
-        return '/storage/'.$this->avatar;
+        if (Str::startsWith($this->avatar, '/')) {
+            return rtrim((string) config('app.url'), '/').$this->avatar;
+        }
+
+        return Storage::disk($this->avatarDisk())->url($this->avatar);
+    }
+
+    private function avatarDisk(): string
+    {
+        return (string) config('ofppt.avatar_disk', 'public');
     }
 }
