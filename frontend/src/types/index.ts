@@ -219,6 +219,7 @@ export interface UpdateUserPayload {
 export interface UpdateProfilePayload {
   nom: string;
   prenom: string;
+  email: string;
   telephone?: string | null;
 }
 

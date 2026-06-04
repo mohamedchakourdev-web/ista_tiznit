@@ -33,6 +33,7 @@ const maxAvatarSize = 2 * 1024 * 1024;
 const profileSchema = z.object({
   nom: z.string().min(1, 'Le nom est obligatoire.').max(100, 'Le nom est trop long.'),
   prenom: z.string().min(1, 'Le prenom est obligatoire.').max(100, 'Le prenom est trop long.'),
+  email: z.string().trim().min(1, 'L adresse email est obligatoire.').email('Adresse email invalide.'),
   telephone: z.string().max(30, 'Le telephone est trop long.').optional(),
 });
 
@@ -80,7 +81,7 @@ function ProfileContent() {
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { nom: '', prenom: '', telephone: '' },
+    defaultValues: { nom: '', prenom: '', email: '', telephone: '' },
   });
 
   const passwordForm = useForm<PasswordFormValues>({
@@ -114,6 +115,7 @@ function ProfileContent() {
     profileForm.reset({
       nom: profile.nom ?? '',
       prenom: profile.prenom ?? '',
+      email: profile.email ?? '',
       telephone: profile.telephone ?? '',
     });
   }, [profile, profileForm]);
@@ -137,7 +139,7 @@ function ProfileContent() {
       const validationErrors = getValidationErrors(error);
 
       Object.entries(validationErrors).forEach(([field, messages]) => {
-        if (field === 'nom' || field === 'prenom' || field === 'telephone') {
+        if (field === 'nom' || field === 'prenom' || field === 'email' || field === 'telephone') {
           profileForm.setError(field, { message: messages[0] });
         }
       });
@@ -189,6 +191,7 @@ function ProfileContent() {
     updateProfileMutation.mutate({
       nom: values.nom.trim(),
       prenom: values.prenom.trim(),
+      email: values.email.trim(),
       telephone: values.telephone?.trim() || null,
     });
   };
@@ -254,7 +257,7 @@ function ProfileContent() {
               <Shield className="h-4 w-4 text-primary" />
               Informations personnelles
             </CardTitle>
-            <CardDescription>Les champs Email, Role et Type ne sont pas modifiables.</CardDescription>
+            <CardDescription>Le champ Email est modifiable depuis le profil. Role et Type restent en lecture seule.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={profileForm.handleSubmit(handleProfileSubmit)} className="space-y-5">
@@ -277,7 +280,17 @@ function ProfileContent() {
                   <FieldError message={profileForm.formState.errors.prenom?.message} />
                 </div>
 
-                <ReadonlyField label="Email" value={profile?.email ?? ''} />
+                <div className="space-y-2">
+                  <Label htmlFor="profile-email">Email</Label>
+                  <Input
+                    id="profile-email"
+                    type="email"
+                    autoComplete="email"
+                    {...profileForm.register('email')}
+                    className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]"
+                  />
+                  <FieldError message={profileForm.formState.errors.email?.message} />
+                </div>
 
                 <div className="space-y-2">
                   <Label>Telephone</Label>

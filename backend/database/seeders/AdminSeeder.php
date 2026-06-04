@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Enums\FormateurTypeEnum;
-use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -26,9 +25,9 @@ class AdminSeeder extends Seeder
                 'attributes' => [
                     'nom' => 'Bennani',
                     'prenom' => 'Omar',
-                    'email' => 'directeur@ofppt.local',
+                    'email' => 'adminyassine@gmail.com',
                     'telephone' => '0611000001',
-                    'password' => 'Password@123',
+                    'password' => 'admin12345',
                     'type' => null,
                     'last_login_at' => now()->subDay(),
                     'is_active' => true,
@@ -100,22 +99,6 @@ class AdminSeeder extends Seeder
             );
 
             $user->syncRoles([$definition['role']]);
-
-            Notification::query()->updateOrCreate(
-                [
-                    'user_id' => $user->id,
-                    'type' => 'system',
-                    'title' => 'Bienvenue sur la plateforme',
-                ],
-                [
-                    'message' => sprintf(
-                        'Votre compte %s est pret pour la gestion des absences OFPPT.',
-                        $definition['role']
-                    ),
-                    'is_read' => false,
-                    'read_at' => null,
-                ]
-            );
         }
     }
 }
