@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Mail\Transport\BrevoApiTransport;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -27,11 +29,25 @@ class AppServiceProvider extends ServiceProvider
     {
         JsonResource::withoutWrapping();
 
+        $this->registerBrevoMailTransport();
         $this->ensureDeploymentStoragePaths();
 
         RateLimiter::for('api', static function (Request $request): Limit {
             return Limit::perMinute((int) env('API_RATE_LIMIT', 60))
                 ->by((string) ($request->user()?->id ?? $request->ip()));
+        });
+    }
+
+    /**
+     * Register the Brevo HTTP API mail transport.
+     */
+    private function registerBrevoMailTransport(): void
+    {
+        Mail::extend('brevo', function (array $config): BrevoApiTransport {
+            return new BrevoApiTransport(
+                apiKey: (string) ($config['key'] ?? config('services.brevo.key', '')),
+                endpoint: (string) ($config['endpoint'] ?? config('services.brevo.endpoint', 'https://api.brevo.com/v3/smtp/email')),
+            );
         });
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Middleware\ActiveUserMiddleware;
 use App\Http\Middleware\PermissionMiddleware;
 use App\Http\Middleware\RoleMiddleware;
+use App\Http\Middleware\ValidateMailTestToken;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -31,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'active' => ActiveUserMiddleware::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
+            'mail.test' => ValidateMailTestToken::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

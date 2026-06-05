@@ -17,7 +17,11 @@ use App\Http\Controllers\API\Management\FiliereController;
 use App\Http\Controllers\API\Management\GroupeController as ManagementGroupeController;
 use App\Http\Controllers\API\Management\StagiaireController as ManagementStagiaireController;
 use App\Http\Controllers\API\Notification\NotificationController;
+use App\Http\Controllers\API\System\MailTestController;
 use Illuminate\Support\Facades\Route;
+
+Route::post('/system/mail/test', [MailTestController::class, 'send'])
+    ->middleware('mail.test');
 
 Route::prefix('auth')->group(function (): void {
     Route::post('/login', [AuthController::class, 'login']);
