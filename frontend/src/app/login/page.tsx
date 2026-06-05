@@ -195,34 +195,6 @@ export default function LoginPage() {
               </div>
             ))}
           </div>
-
-          {/* Social proof */}
-          <div
-            className={`flex items-center gap-3.5 transition-all duration-700 ease-out ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}
-            style={{ transitionDelay: '600ms' }}
-          >
-            <div className="flex -space-x-2">
-              {[
-                { letter: 'A', bg: '#0F766E' },
-                { letter: 'S', bg: '#2563EB' },
-                { letter: 'M', bg: '#7C3AED' },
-                { letter: 'K', bg: '#C026D3' },
-              ].map((u, i) => (
-                <div
-                  key={u.letter}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold text-white ring-2 ring-[#0A0F1E]"
-                  style={{ background: u.bg, zIndex: 4 - i }}
-                >
-                  {u.letter}
-                </div>
-              ))}
-            </div>
-            <p className="text-[12px] text-slate-300">
-              Utilisé par <span className="text-white font-medium">50+ formateurs</span> OFPPT
-            </p>
-          </div>
         </div>
       </div>
 

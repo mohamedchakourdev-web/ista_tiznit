@@ -13,7 +13,7 @@ import {
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { getInitials, getPrimaryRole, getRoleLabel, getUserFullName } from '@/utils/domain';
+import { getPrimaryRole } from '@/utils/domain';
 
 interface NavItem {
   label: string;
@@ -193,47 +193,6 @@ function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; onNavig
           ))
         )}
       </nav>
-
-      {/* ══ User Footer ══ */}
-      <div className="shrink-0 px-3 pb-3 pt-1">
-        {/* Divider */}
-        <div className="mb-3 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
-
-        {collapsed ? (
-          <div className="flex flex-col items-center space-y-1.5">
-            {user && (
-              <Tooltip>
-                <TooltipTrigger className="relative flex h-10 w-10 items-center justify-center rounded-[10px] bg-gradient-to-b from-[#0F766E]/25 to-[#0F766E]/8 text-[13px] font-bold text-[#2DD4BF] cursor-default ring-1 ring-[#0F766E]/25 shadow-[0_2px_8px_rgba(15,118,110,0.15)] border-none">
-                  {getInitials(user)}
-                  <div className="absolute -bottom-[2px] -right-[2px] h-3 w-3 rounded-full bg-emerald-400 ring-[2.5px] ring-[#0F172A] shadow-[0_0_6px_rgba(52,211,153,0.4)]" />
-                </TooltipTrigger>
-                <TooltipContent side="right" sideOffset={10} className="text-[12px] font-medium bg-[#1E293B] text-white border-white/10 shadow-2xl">
-                  <p className="font-semibold">{getUserFullName(user)}</p>
-                  <p className="text-slate-400 font-normal text-[11px]">{user.email}</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
-          </div>
-        ) : (
-          <>
-            {/* User card */}
-            {user && (
-              <div className="flex items-center gap-2.5 rounded-[10px] px-2.5 py-2.5 mb-1.5 bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.06] transition-all duration-200 cursor-default">
-                <div className="relative flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-b from-[#0F766E]/25 to-[#0F766E]/8 text-[13px] font-bold text-[#2DD4BF] ring-1 ring-[#0F766E]/25 shadow-[0_2px_8px_rgba(15,118,110,0.15)]">
-                  {getInitials(user)}
-                  <div className="absolute -bottom-[2px] -right-[2px] h-3 w-3 rounded-full bg-emerald-400 ring-[2.5px] ring-[#0F172A] shadow-[0_0_6px_rgba(52,211,153,0.4)]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-semibold text-slate-100 truncate leading-tight">{getUserFullName(user)}</p>
-                  <p className="text-[11px] text-slate-500 truncate leading-tight mt-[2px]">
-                    {getRoleLabel(getPrimaryRole(user)) || user.email}
-                  </p>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
     </div>
   );
 }
