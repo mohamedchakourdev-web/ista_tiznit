@@ -38,12 +38,24 @@ class UpdateStagiaireRequest extends ApiRequest
             'prenom' => ['sometimes', 'required', 'string', 'max:100'],
             'cin' => ['sometimes', 'required', 'string', 'max:30', Rule::unique('stagiaires', 'cin')->ignore($stagiaireId)],
             'email' => ['nullable', 'email', 'max:255'],
-            'telephone' => ['nullable', 'string', 'max:30'],
+            'telephone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9]+$/'],
             'date_naissance' => ['nullable', 'date'],
             'adresse' => ['nullable', 'string', 'max:255'],
             'ville' => ['nullable', 'string', 'max:100'],
             'photo' => ['nullable', 'url', 'max:255'],
             'sexe' => ['sometimes', 'required', Rule::enum(SexeEnum::class)],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'telephone.regex' => 'Le numéro de téléphone doit contenir uniquement des chiffres.',
         ];
     }
 }

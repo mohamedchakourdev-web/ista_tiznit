@@ -36,7 +36,13 @@ const schema = z.object({
   prenom: z.string().min(1, 'Prenom requis').max(100, 'Prenom trop long'),
   cin: z.string().min(1, 'CIN requise').max(30, 'CIN trop longue'),
   email: z.string().email('Email invalide').optional().or(z.literal('')),
-  telephone: z.string().max(30, 'Telephone trop long').optional(),
+  telephone: z
+    .string()
+    .max(30, 'Telephone trop long')
+    .refine((value) => value === '' || /^[0-9]+$/.test(value), {
+      message: 'Le numéro de téléphone doit contenir uniquement des chiffres.',
+    })
+    .optional(),
   date_naissance: z.string().optional(),
   adresse: z.string().max(255, 'Adresse trop longue').optional(),
   ville: z.string().max(100, 'Ville trop longue').optional(),
@@ -363,7 +369,18 @@ export default function StagiairesPage() {
               </div>
               <div className="space-y-2">
                 <Label>Telephone</Label>
-                <Input {...register('telephone')} className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]" />
+                <Input
+                  type="tel"
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  {...register('telephone', {
+                    onChange: (event) => {
+                      event.target.value = event.target.value.replace(/\D/g, '');
+                    },
+                  })}
+                  className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]"
+                />
+                {errors.telephone && <p className="text-[12px] text-destructive">{errors.telephone.message}</p>}
               </div>
               <div className="space-y-2">
                 <Label>Ville</Label>

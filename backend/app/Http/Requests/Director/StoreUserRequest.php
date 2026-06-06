@@ -44,10 +44,22 @@ class StoreUserRequest extends ApiRequest
                 'max:255',
                 Rule::unique('users', 'email')->whereNull('deleted_at'),
             ],
-            'telephone' => ['nullable', 'string', 'max:30'],
+            'telephone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9]+$/'],
             'password' => ['required', 'string', 'min:8'],
             'role' => ['required', 'string', Rule::in(self::ALLOWED_ROLES)],
             'type' => ['required_if:role,formateur', 'nullable', Rule::in($types)],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'telephone.regex' => 'Le numéro de téléphone doit contenir uniquement des chiffres.',
         ];
     }
 }

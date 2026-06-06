@@ -38,7 +38,7 @@ class UpdateProfileRequest extends ApiRequest
                 'max:255',
                 Rule::unique('users', 'email')->ignore($userId),
             ],
-            'telephone' => ['nullable', 'string', 'max:30'],
+            'telephone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9]+$/'],
         ];
     }
 
@@ -59,6 +59,7 @@ class UpdateProfileRequest extends ApiRequest
             'email.max' => 'L adresse email ne doit pas depasser 255 caracteres.',
             'email.unique' => 'Cette adresse email est deja utilisee.',
             'telephone.max' => 'Le telephone ne doit pas depasser 30 caracteres.',
+            'telephone.regex' => 'Le numéro de téléphone doit contenir uniquement des chiffres.',
         ];
     }
 }

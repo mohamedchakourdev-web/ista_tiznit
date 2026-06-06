@@ -122,7 +122,7 @@ class StagiairesImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, 
             'cef' => ['required', 'string', 'max:30', Rule::unique('stagiaires', 'cef')],
             'cin' => ['required', 'string', 'max:30', Rule::unique('stagiaires', 'cin')],
             'email' => ['nullable', 'email', 'max:255'],
-            'telephone' => ['nullable', 'string', 'max:30'],
+            'telephone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9]+$/'],
             'adresse' => ['nullable', 'string', 'max:255'],
             'ville' => ['nullable', 'string', 'max:100'],
             'date_naissance' => ['nullable', 'date'],
@@ -151,6 +151,7 @@ class StagiairesImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, 
             'diplome_type_id.required' => 'Aucun type de diplome correspondant au CodeDiplome fourni.',
             'diplome_type_id.exists' => 'Le type de diplome resolu est introuvable.',
             'sexe' => 'Le sexe doit etre homme ou femme.',
+            'telephone.regex' => 'Le numéro de téléphone doit contenir uniquement des chiffres.',
         ];
     }
 

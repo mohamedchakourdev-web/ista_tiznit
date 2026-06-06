@@ -34,7 +34,13 @@ const profileSchema = z.object({
   nom: z.string().min(1, 'Le nom est obligatoire.').max(100, 'Le nom est trop long.'),
   prenom: z.string().min(1, 'Le prenom est obligatoire.').max(100, 'Le prenom est trop long.'),
   email: z.string().trim().min(1, 'L adresse email est obligatoire.').email('Adresse email invalide.'),
-  telephone: z.string().max(30, 'Le telephone est trop long.').optional(),
+  telephone: z
+    .string()
+    .max(30, 'Le telephone est trop long.')
+    .refine((value) => value === '' || /^[0-9]+$/.test(value), {
+      message: 'Le numéro de téléphone doit contenir uniquement des chiffres.',
+    })
+    .optional(),
 });
 
 const passwordSchema = z.object({
@@ -295,7 +301,14 @@ function ProfileContent() {
                 <div className="space-y-2">
                   <Label>Telephone</Label>
                   <Input
-                    {...profileForm.register('telephone')}
+                    type="tel"
+                    inputMode="numeric"
+                    autoComplete="tel"
+                    {...profileForm.register('telephone', {
+                      onChange: (event) => {
+                        event.target.value = event.target.value.replace(/\D/g, '');
+                      },
+                    })}
                     className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]"
                   />
                   <FieldError message={profileForm.formState.errors.telephone?.message} />
