@@ -39,15 +39,17 @@ export default function DirecteurDashboard() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           {cards.map((card) => (
-            <Link key={card.label} href={card.href}>
-              <div className="rounded-xl border border-border/50 bg-card p-5 hover:border-border/70 hover:shadow-[0_1px_4px_rgba(0,0,0,0.03)] transition-all group cursor-pointer">
-                <div className="flex items-center justify-between mb-5">
-                  <span className="text-[13px] font-medium text-muted-foreground">{card.label}</span>
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                    <card.icon className="h-4 w-4" />
+            <Link key={card.label} href={card.href} className="flex flex-col h-full">
+              <div className="h-full rounded-xl border border-border/50 bg-card p-5 hover:border-border/70 hover:shadow-[0_1px_4px_rgba(0,0,0,0.03)] transition-all group cursor-pointer flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-5">
+                    <span className="text-[13px] font-medium text-muted-foreground">{card.label}</span>
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                      <card.icon className="h-4 w-4" />
+                    </div>
                   </div>
+                  <p className="text-[28px] font-semibold tracking-tight leading-none">{card.value}</p>
                 </div>
-                <p className="text-[28px] font-semibold tracking-tight leading-none">{card.value}</p>
                 <p className="text-[13px] text-muted-foreground mt-1.5">{card.desc}</p>
               </div>
             </Link>

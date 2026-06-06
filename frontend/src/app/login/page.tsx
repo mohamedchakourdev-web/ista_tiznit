@@ -255,7 +255,7 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
                 {/* Email */}
                 <div className="space-y-1.5">
                   <Label htmlFor="email" className="text-[13px] font-semibold text-[#334155]">
@@ -349,7 +349,7 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+              <form onSubmit={handleForgotPasswordSubmit} noValidate className="space-y-4">
                 {/* Email */}
                 <div className="space-y-1.5">
                   <Label htmlFor="forgot-email" className="text-[13px] font-semibold text-[#334155]">

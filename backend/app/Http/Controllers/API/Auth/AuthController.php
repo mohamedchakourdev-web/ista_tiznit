@@ -31,13 +31,13 @@ class AuthController extends Controller
 
         if ($user === null) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'email' => ['Les identifiants saisis sont incorrects.'],
             ]);
         }
 
         if (! Hash::check($password, $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'email' => ['Les identifiants saisis sont incorrects.'],
             ]);
         }
 
@@ -76,7 +76,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Login successful.',
+            'message' => 'Connexion réussie.',
             'data' => [
                 'token' => $token,
                 'user' => new UserResource($user),
@@ -99,7 +99,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Logout successful.',
+            'message' => 'Déconnexion réussie.',
             'data' => (object) [],
         ]);
     }
@@ -122,7 +122,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Authenticated user retrieved successfully.',
+            'message' => 'Profil utilisateur récupéré avec succès.',
             'data' => new UserResource($user),
         ]);
     }

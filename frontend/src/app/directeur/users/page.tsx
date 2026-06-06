@@ -250,7 +250,7 @@ export default function DirecteurUsersPage() {
 
       <Dialog open={open} onOpenChange={(value) => { if (!value) closeDialog(); }}>
         <DialogContent className="sm:max-w-[520px]">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
             <DialogHeader>
               <DialogTitle>{editing ? 'Modifier utilisateur' : 'Ajouter utilisateur'}</DialogTitle>
             </DialogHeader>

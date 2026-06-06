@@ -173,7 +173,7 @@ class AbsenceController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Absence created successfully.',
+            'message' => 'Absence créée avec succès.',
             'data' => new AbsenceResource($absence),
         ], 201);
     }

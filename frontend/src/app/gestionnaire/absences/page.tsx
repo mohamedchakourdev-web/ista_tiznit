@@ -226,7 +226,7 @@ export default function AbsencesPage() {
 
       <Dialog open={open} onOpenChange={(value) => { if (!value) closeDialog(); }}>
         <DialogContent className="sm:max-w-[620px]">
-          <form onSubmit={handleSubmit((values) => createMutation.mutate(toPayload(values)))} className="space-y-4">
+          <form onSubmit={handleSubmit((values) => createMutation.mutate(toPayload(values)))} noValidate className="space-y-4">
             <DialogHeader>
               <DialogTitle>Nouvelle absence</DialogTitle>
             </DialogHeader>

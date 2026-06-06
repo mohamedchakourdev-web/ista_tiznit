@@ -49,7 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthenticated.',
+                'message' => 'Session expirée. Veuillez vous reconnecter.',
                 'errors' => (object) [],
             ], Response::HTTP_UNAUTHORIZED);
         });
@@ -61,7 +61,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return response()->json([
                 'success' => false,
-                'message' => $exception->getMessage() ?: 'This action is unauthorized.',
+                'message' => $exception->getMessage() ?: 'Cette action n\'est pas autorisée.',
                 'errors' => (object) [],
             ], Response::HTTP_FORBIDDEN);
         });
@@ -73,7 +73,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Erreur de validation',
                 'errors' => $exception->errors(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         });
@@ -85,7 +85,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return response()->json([
                 'success' => false,
-                'message' => 'Resource not found.',
+                'message' => 'Ressource introuvable.',
                 'errors' => (object) [],
             ], Response::HTTP_NOT_FOUND);
         });
@@ -97,7 +97,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             $message = app()->hasDebugModeEnabled()
                 ? $exception->getMessage()
-                : 'An unexpected server error occurred.';
+                : 'Une erreur serveur inattendue est survenue.';
 
             return response()->json([
                 'success' => false,

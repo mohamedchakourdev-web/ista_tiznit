@@ -21,7 +21,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getGroupeFiliereName, getUserFullName } from '@/utils/domain';
@@ -203,7 +202,7 @@ export default function GroupesPage() {
                 <TableHead className="text-[11px] font-medium text-muted-foreground/80 uppercase tracking-[0.12em] px-5">Année</TableHead>
                 <TableHead className="text-[11px] font-medium text-muted-foreground/80 uppercase tracking-[0.12em] px-5">Niveau</TableHead>
                 <TableHead className="text-[11px] font-medium text-muted-foreground/80 uppercase tracking-[0.12em] px-5">Stagiaires</TableHead>
-                <TableHead className="w-12" />
+                <TableHead className="text-[11px] font-medium text-muted-foreground/80 uppercase tracking-[0.12em] px-5 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -215,22 +214,17 @@ export default function GroupesPage() {
                   <TableCell className="text-[14px] text-muted-foreground px-5 py-3">{groupe.annee_formation}</TableCell>
                   <TableCell className="text-[14px] text-muted-foreground px-5 py-3">{groupe.niveau}</TableCell>
                   <TableCell className="text-[14px] text-muted-foreground px-5 py-3">{groupe.stagiaires_count ?? '—'}</TableCell>
-                  <TableCell className="px-5 py-3 text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-muted/60 text-muted-foreground/70 hover:text-foreground transition-colors duration-150">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-36 rounded-lg p-1 border-border/50 shadow-sm">
-                        <DropdownMenuItem onClick={() => openEdit(groupe)} className="text-[13px] gap-2">
-                          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                          Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setDeleting(groupe)} className="text-[13px] gap-2 text-destructive focus:text-destructive">
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Supprimer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  <TableCell className="px-5 py-3">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button type="button" variant="outline" size="sm" onClick={() => openEdit(groupe)} className="h-8 rounded-lg text-[12px]">
+                        <Pencil className="h-3.5 w-3.5" />
+                        Modifier
+                      </Button>
+                      <Button type="button" variant="destructive" size="sm" onClick={() => setDeleting(groupe)} className="h-8 rounded-lg text-[12px]">
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Supprimer
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -242,7 +236,7 @@ export default function GroupesPage() {
 
       <Dialog open={open} onOpenChange={(value) => { if (!value) closeDialog(); }}>
         <DialogContent className="sm:max-w-[620px]">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
             <DialogHeader>
               <DialogTitle>{editing ? 'Modifier le groupe' : 'Nouveau groupe'}</DialogTitle>
             </DialogHeader>

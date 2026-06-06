@@ -204,7 +204,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'hidden lg:flex flex-col h-screen sticky top-0 bg-[#0F172A] transition-[width] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]',
+        'relative hidden lg:flex flex-col h-full bg-[#0F172A] transition-[width] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]',
         collapsed ? 'w-[68px]' : 'w-[244px]'
       )}
       style={{

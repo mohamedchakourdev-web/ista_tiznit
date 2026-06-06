@@ -74,7 +74,7 @@ export default function FormateurGroupesPage() {
         </div>
       )}
 
-      {selectedGroupe && (
+      {Boolean(selectedGroupe) && (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-foreground">Stagiaires du groupe</h2>
