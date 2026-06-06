@@ -1,1 +1,3 @@
 *.sqlite*
+database/mysql.pid
+database/mysql_data/
