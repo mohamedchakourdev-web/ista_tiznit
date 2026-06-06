@@ -84,10 +84,11 @@ export default function DirecteurUsersPage() {
 
   const createMutation = useMutation({
     mutationFn: (payload: StoreUserPayload) => directorService.createUser(payload),
-    onSuccess: () => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['director-users'] });
+      queryClient.invalidateQueries({ queryKey: ['director-users-trashed'] });
       queryClient.invalidateQueries({ queryKey: ['director-overview'] });
-      toast.success('Utilisateur cree.');
+      toast.success(response.message === 'Utilisateur restaure' ? 'Utilisateur restaure.' : 'Utilisateur cree.');
       closeDialog();
     },
     onError: (error) => toast.error(getApiErrorMessage(error, 'Impossible de creer l utilisateur.')),

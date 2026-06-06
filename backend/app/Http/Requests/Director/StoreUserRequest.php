@@ -38,7 +38,13 @@ class StoreUserRequest extends ApiRequest
         return [
             'nom' => ['required', 'string', 'max:100'],
             'prenom' => ['nullable', 'string', 'max:100'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->whereNull('deleted_at'),
+            ],
+            'telephone' => ['nullable', 'string', 'max:30'],
             'password' => ['required', 'string', 'min:8'],
             'role' => ['required', 'string', Rule::in(self::ALLOWED_ROLES)],
             'type' => ['required_if:role,formateur', 'nullable', Rule::in($types)],

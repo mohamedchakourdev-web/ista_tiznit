@@ -55,8 +55,13 @@ Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
             Route::get('/overview', [OverviewController::class, 'index']);
 
             Route::middleware('permission:manage users')->group(function (): void {
+                Route::get('/users/trashed', [UserController::class, 'trashed']);
                 Route::get('/users', [UserController::class, 'index']);
                 Route::post('/users', [UserController::class, 'store']);
+                Route::post('/users/{id}/restore', [UserController::class, 'restore'])
+                    ->whereNumber('id');
+                Route::delete('/users/{id}/force', [UserController::class, 'forceDestroy'])
+                    ->whereNumber('id');
                 Route::get('/users/{id}', [UserController::class, 'show'])
                     ->whereNumber('id');
                 Route::put('/users/{id}', [UserController::class, 'update'])

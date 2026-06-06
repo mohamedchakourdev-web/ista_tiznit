@@ -65,6 +65,7 @@ export interface User {
   groupes?: Groupe[];
   created_at?: string | null;
   updated_at?: string | null;
+  deleted_at?: string | null;
 }
 
 export interface Filiere {
@@ -205,6 +206,7 @@ export interface StoreUserPayload {
   password: string;
   role: UserRole;
   type?: FormateurType | null;
+  telephone?: string | null;
 }
 
 export interface UpdateUserPayload {

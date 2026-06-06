@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
 import {
   LayoutDashboard, Users, BookOpen, GraduationCap, FolderOpen,
-  AlertTriangle, FileCheck,
+  AlertTriangle, FileCheck, UserX,
   ChevronLeft, ChevronRight, Menu, X,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -26,6 +26,7 @@ const navConfig: Record<string, NavItem[]> = {
   directeur: [
     { label: 'Tableau de bord', href: '/directeur', icon: LayoutDashboard, section: 'Général' },
     { label: 'Utilisateurs', href: '/directeur/users', icon: Users, section: 'Supervision' },
+    { label: 'Utilisateurs supprimés', href: '/directeur/users/deleted', icon: UserX, section: 'Supervision' },
     { label: 'Filières', href: '/gestionnaire/filieres', icon: FolderOpen, section: 'Gestion' },
     { label: 'Groupes', href: '/gestionnaire/groupes', icon: BookOpen, section: 'Gestion' },
     { label: 'Stagiaires', href: '/gestionnaire/stagiaires', icon: GraduationCap, section: 'Gestion' },

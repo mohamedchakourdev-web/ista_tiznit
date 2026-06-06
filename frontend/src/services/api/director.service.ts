@@ -33,4 +33,16 @@ export const directorService = {
   deleteUser(id: number) {
     return apiClient.delete<ApiResponse<Record<string, never>>>(`/director/users/${id}`).then((res) => res.data);
   },
+
+  trashedUsers(params?: QueryParams) {
+    return apiClient.get<ApiCollectionResponse<User>>('/director/users/trashed', { params }).then((res) => res.data);
+  },
+
+  restoreUser(id: number) {
+    return apiClient.post<ApiResponse<User>>(`/director/users/${id}/restore`).then((res) => res.data);
+  },
+
+  forceDeleteUser(id: number) {
+    return apiClient.delete<ApiResponse<Record<string, never>>>(`/director/users/${id}/force`).then((res) => res.data);
+  },
 };

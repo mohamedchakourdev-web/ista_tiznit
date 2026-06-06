@@ -62,18 +62,62 @@ class UserController extends Controller
     }
 
     /**
-     * Creer un utilisateur.
+     * Liste des utilisateurs supprimes (soft delete).
+     */
+    public function trashed(Request $request): JsonResponse
+    {
+        $query = User::onlyTrashed()
+            ->with(['roles', 'permissions'])
+            ->orderByDesc('deleted_at')
+            ->orderBy('nom')
+            ->orderBy('prenom');
+
+        if ($request->search) {
+            $search = '%'.trim((string) $request->search).'%';
+
+            $query->where(function ($q) use ($search): void {
+                $q->where('nom', 'like', $search)
+                    ->orWhere('prenom', 'like', $search)
+                    ->orWhere('email', 'like', $search);
+            });
+        }
+
+        $users = $query->paginate($this->perPage($request));
+
+        return $this->paginatedResponse(
+            UserResource::collection($users),
+            'Liste des utilisateurs supprimes',
+        );
+    }
+
+    /**
+     * Creer un utilisateur ou restaurer un compte supprime avec le meme email.
      */
     public function store(StoreUserRequest $request): JsonResponse
     {
-        $user = auth()->user();
-
         $data = $request->validated();
         $role = (string) $data['role'];
         unset($data['role']);
 
         $data['prenom'] = $data['prenom'] ?? '';
         $data['is_active'] = true;
+
+        $trashedUser = User::withTrashed()
+            ->where('email', $data['email'])
+            ->whereNotNull('deleted_at')
+            ->first();
+
+        if ($trashedUser !== null) {
+            $trashedUser->restore();
+            $trashedUser->update($data);
+            $trashedUser->load(['roles', 'permissions']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Utilisateur restaure',
+                'data' => new UserResource($trashedUser),
+            ], Response::HTTP_CREATED);
+        }
 
         $targetUser = User::create($data);
         $targetUser->syncRoles([$role]);
@@ -123,14 +167,8 @@ class UserController extends Controller
      */
     public function destroy(int $userId): JsonResponse
     {
-        $user = auth()->user();
-
-        if ($user !== null && (int) $user->id === $userId) {
-            return $this->errorResponse(
-                'Vous ne pouvez pas supprimer votre propre compte.',
-                [],
-                Response::HTTP_UNPROCESSABLE_ENTITY,
-            );
+        if ($response = $this->preventSelfAccountDeletion($userId)) {
+            return $response;
         }
 
         $targetUser = User::findOrFail($userId);
@@ -142,5 +180,69 @@ class UserController extends Controller
             'message' => 'Utilisateur supprime',
             'data' => (object) [],
         ]);
+    }
+
+    /**
+     * Restaurer un utilisateur supprime.
+     */
+    public function restore(int $userId): JsonResponse
+    {
+        $targetUser = User::onlyTrashed()->findOrFail($userId);
+        $targetUser->restore();
+        $targetUser->update(['is_active' => true]);
+        $targetUser->load(['roles', 'permissions']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Utilisateur restaure',
+            'data' => new UserResource($targetUser),
+        ]);
+    }
+
+    /**
+     * Supprimer definitivement un utilisateur.
+     */
+    public function forceDestroy(int $userId): JsonResponse
+    {
+        if ($response = $this->preventSelfAccountDeletion($userId)) {
+            return $response;
+        }
+
+        $targetUser = User::withTrashed()->findOrFail($userId);
+
+        if ($targetUser->trashed()) {
+            $targetUser->tokens()->delete();
+            $targetUser->forceDelete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Utilisateur supprime definitivement',
+                'data' => (object) [],
+            ]);
+        }
+
+        return $this->errorResponse(
+            'Seuls les utilisateurs deja supprimes peuvent etre supprimes definitivement.',
+            [],
+            Response::HTTP_UNPROCESSABLE_ENTITY,
+        );
+    }
+
+    /**
+     * @return JsonResponse|null
+     */
+    private function preventSelfAccountDeletion(int $userId): ?JsonResponse
+    {
+        $user = auth()->user();
+
+        if ($user !== null && (int) $user->id === $userId) {
+            return $this->errorResponse(
+                'Vous ne pouvez pas supprimer votre propre compte.',
+                [],
+                Response::HTTP_UNPROCESSABLE_ENTITY,
+            );
+        }
+
+        return null;
     }
 }
