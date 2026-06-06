@@ -236,7 +236,7 @@ export default function GroupesPage() {
 
       <Dialog open={open} onOpenChange={(value) => { if (!value) closeDialog(); }}>
         <DialogContent className="sm:max-w-[620px]">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
             <DialogHeader>
               <DialogTitle>{editing ? 'Modifier le groupe' : 'Nouveau groupe'}</DialogTitle>
             </DialogHeader>

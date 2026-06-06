@@ -271,7 +271,7 @@ export default function AutorisationsPage() {
 
       <Dialog open={open} onOpenChange={(value) => { if (!value) closeDialog(); }}>
         <DialogContent className="max-h-[calc(100vh-1.5rem)] overflow-y-auto sm:max-w-[560px]">
-          <form onSubmit={handleSubmit((values) => createMutation.mutate(toPayload(values)))} className="space-y-3">
+          <form onSubmit={handleSubmit((values) => createMutation.mutate(toPayload(values)))} noValidate className="space-y-3">
             <DialogHeader className="gap-1">
               <DialogTitle>Nouvelle autorisation</DialogTitle>
             </DialogHeader>

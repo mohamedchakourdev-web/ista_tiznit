@@ -286,7 +286,7 @@ export default function StagiairesPage() {
 
       <Dialog open={open} onOpenChange={(value) => { if (!value) closeDialog(); }}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[720px]">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
             <DialogHeader>
               <DialogTitle>{editing ? 'Modifier le stagiaire' : 'Nouveau stagiaire'}</DialogTitle>
             </DialogHeader>

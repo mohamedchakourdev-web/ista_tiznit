@@ -260,7 +260,7 @@ function ProfileContent() {
             <CardDescription>Le champ Email est modifiable depuis le profil. Role et Type restent en lecture seule.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={profileForm.handleSubmit(handleProfileSubmit)} className="space-y-4">
+            <form onSubmit={profileForm.handleSubmit(handleProfileSubmit)} noValidate className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Nom</Label>
@@ -396,7 +396,7 @@ function ProfileContent() {
           <CardDescription>Le mot de passe actuel est requis pour valider le changement.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={passwordForm.handleSubmit(handlePasswordSubmit)} className="space-y-4">
+          <form onSubmit={passwordForm.handleSubmit(handlePasswordSubmit)} noValidate className="space-y-4">
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
               <div className="space-y-2">
                 <Label>Mot de passe actuel</Label>
