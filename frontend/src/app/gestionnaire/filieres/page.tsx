@@ -20,7 +20,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getFiliereName } from '@/utils/domain';
 
@@ -132,7 +131,7 @@ export default function FilieresPage() {
                 <TableHead className="text-[11px] font-medium text-muted-foreground/80 uppercase tracking-[0.12em] px-5">Code</TableHead>
                 <TableHead className="text-[11px] font-medium text-muted-foreground/80 uppercase tracking-[0.12em] px-5">Description</TableHead>
                 <TableHead className="text-[11px] font-medium text-muted-foreground/80 uppercase tracking-[0.12em] px-5">Groupes</TableHead>
-                <TableHead className="w-12" />
+                <TableHead className="text-[11px] font-medium text-muted-foreground/80 uppercase tracking-[0.12em] px-5 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -140,24 +139,19 @@ export default function FilieresPage() {
                 <TableRow key={filiere.id} className="hover:bg-muted/30 border-b border-border/30 last:border-0 transition-colors duration-150">
                   <TableCell className="min-w-[260px] whitespace-normal break-words text-[14px] font-medium leading-snug text-foreground px-5 py-3">{getFiliereName(filiere)}</TableCell>
                   <TableCell className="text-[14px] text-muted-foreground px-5 py-3">{filiere.code}</TableCell>
-                  <TableCell className="text-[14px] text-muted-foreground px-5 py-3">{filiere.description ?? '—'}</TableCell>
+                  <TableCell className="text-[14px] text-muted-foreground px-5 py-3 whitespace-normal break-words min-w-[350px] max-w-[550px]">{filiere.description ?? '—'}</TableCell>
                   <TableCell className="text-[14px] text-muted-foreground px-5 py-3">{filiere.groupes_count ?? '—'}</TableCell>
-                  <TableCell className="px-5 py-3 text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-muted/60 text-muted-foreground/70 hover:text-foreground transition-colors duration-150">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-36 rounded-lg p-1 border-border/50 shadow-sm">
-                        <DropdownMenuItem onClick={() => openEdit(filiere)} className="text-[13px] gap-2">
-                          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                          Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setDeleting(filiere)} className="text-[13px] gap-2 text-destructive focus:text-destructive">
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Supprimer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  <TableCell className="px-5 py-3">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button type="button" variant="outline" size="sm" onClick={() => openEdit(filiere)} className="h-8 rounded-lg text-[12px]">
+                        <Pencil className="h-3.5 w-3.5" />
+                        Modifier
+                      </Button>
+                      <Button type="button" variant="destructive" size="sm" onClick={() => setDeleting(filiere)} className="h-8 rounded-lg text-[12px]">
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Supprimer
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

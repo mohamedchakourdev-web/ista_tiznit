@@ -247,10 +247,10 @@ function ProfileContent() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader title="Mon profil" description="Informations du compte et securite" icon={UserRound} />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <Card className="border border-border/50 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-[16px]">
@@ -260,7 +260,7 @@ function ProfileContent() {
             <CardDescription>Le champ Email est modifiable depuis le profil. Role et Type restent en lecture seule.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={profileForm.handleSubmit(handleProfileSubmit)} className="space-y-5">
+            <form onSubmit={profileForm.handleSubmit(handleProfileSubmit)} className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Nom</Label>
@@ -335,9 +335,9 @@ function ProfileContent() {
             <CardDescription>Photo actuelle</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleAvatarSubmit} className="space-y-5">
-              <div className="flex flex-col items-center gap-3 text-center">
-                <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-2xl bg-[#0F172A] text-[30px] font-bold text-white ring-1 ring-border/60">
+            <form onSubmit={handleAvatarSubmit} className="space-y-4">
+              <div className="flex flex-col items-center gap-2.5 text-center">
+                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-[#0F172A] text-[24px] font-bold text-white ring-1 ring-border/60">
                   {currentAvatarUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={currentAvatarUrl} alt={fullName} className="h-full w-full object-cover" />
@@ -396,7 +396,7 @@ function ProfileContent() {
           <CardDescription>Le mot de passe actuel est requis pour valider le changement.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={passwordForm.handleSubmit(handlePasswordSubmit)} className="space-y-5">
+          <form onSubmit={passwordForm.handleSubmit(handlePasswordSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
               <div className="space-y-2">
                 <Label>Mot de passe actuel</Label>

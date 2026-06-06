@@ -145,6 +145,9 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html, body {
+    @apply h-full overflow-hidden;
+  }
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "cv11", "ss01";
@@ -217,5 +220,32 @@
 @layer utilities {
   .card-hover {
     @apply transition-all duration-200 ease-out;
+  }
+}
+
+/* Force pointer cursor on all interactive/clickable elements globally */
+@layer base {
+  button,
+  a,
+  select,
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  input[type="checkbox"],
+  input[type="radio"],
+  label,
+  [role="button"],
+  [role="menuitem"],
+  [role="menuitemcheckbox"],
+  [role="menuitemradio"],
+  [role="tab"],
+  [role="combobox"],
+  [role="option"],
+  [data-slot="dropdown-menu-item"],
+  [data-slot="dropdown-menu-sub-trigger"],
+  [data-slot="select-item"],
+  [data-slot="select-trigger"],
+  .cursor-pointer {
+    cursor: pointer !important;
   }
 }

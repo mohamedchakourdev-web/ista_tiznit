@@ -30,52 +30,60 @@ export default function FormateurDashboard() {
       <PageHeader title="Mon espace" description="Vos groupes et autorisations" />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Link href="/formateur/groupes">
-          <div className="group rounded-xl border border-border/50 bg-card p-5 transition-all hover:border-border/70 hover:shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
-            <div className="mb-5 flex items-center justify-between">
-              <span className="text-[13px] font-medium text-muted-foreground">Mes groupes</span>
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground transition-colors group-hover:bg-blue-50 group-hover:text-blue-600">
-                <BookOpen className="h-4 w-4" />
+        <Link href="/formateur/groupes" className="flex flex-col h-full">
+          <div className="group h-full rounded-xl border border-border/50 bg-card p-5 transition-all hover:border-border/70 hover:shadow-[0_1px_4px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+            <div>
+              <div className="mb-5 flex items-center justify-between">
+                <span className="text-[13px] font-medium text-muted-foreground">Mes groupes</span>
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground transition-colors group-hover:bg-blue-50 group-hover:text-blue-600">
+                  <BookOpen className="h-4 w-4" />
+                </div>
               </div>
+              {groupesLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-[28px] font-semibold leading-none tracking-tight">{groupes?.data.length ?? 0}</p>}
             </div>
-            {groupesLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-[28px] font-semibold leading-none tracking-tight">{groupes?.data.length ?? 0}</p>}
             <p className="mt-1.5 text-[13px] text-muted-foreground">Groupes assignes</p>
           </div>
         </Link>
-        <Link href="/formateur/autorisations">
-          <div className="group rounded-xl border border-border/50 bg-card p-5 transition-all hover:border-border/70 hover:shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
-            <div className="mb-5 flex items-center justify-between">
-              <span className="text-[13px] font-medium text-muted-foreground">Non lues</span>
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
-                <FileCheck className="h-4 w-4" />
+        <Link href="/formateur/autorisations" className="flex flex-col h-full">
+          <div className="group h-full rounded-xl border border-border/50 bg-card p-5 transition-all hover:border-border/70 hover:shadow-[0_1px_4px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+            <div>
+              <div className="mb-5 flex items-center justify-between">
+                <span className="text-[13px] font-medium text-muted-foreground">Non lues</span>
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+                  <FileCheck className="h-4 w-4" />
+                </div>
               </div>
+              {autorisationsLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-[28px] font-semibold leading-none tracking-tight">{unread}</p>}
             </div>
-            {autorisationsLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-[28px] font-semibold leading-none tracking-tight">{unread}</p>}
             <p className="mt-1.5 text-[13px] text-muted-foreground">Autorisations a consulter</p>
           </div>
         </Link>
-        <div className="rounded-xl border border-border/50 bg-card p-5">
-          <div className="mb-5 flex items-center justify-between">
-            <span className="text-[13px] font-medium text-muted-foreground">Total autorisations</span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground">
-              <FileCheck className="h-4 w-4" />
+        <div className="rounded-xl border border-border/50 bg-card p-5 flex flex-col justify-between h-full">
+          <div>
+            <div className="mb-5 flex items-center justify-between">
+              <span className="text-[13px] font-medium text-muted-foreground">Total autorisations</span>
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground">
+                <FileCheck className="h-4 w-4" />
+              </div>
             </div>
+            {autorisationsLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-[28px] font-semibold leading-none tracking-tight">{total}</p>}
           </div>
-          {autorisationsLoading ? <Skeleton className="h-8 w-12" /> : <p className="text-[28px] font-semibold leading-none tracking-tight">{total}</p>}
           <p className="mt-1.5 text-[13px] text-muted-foreground">Recues au total</p>
         </div>
-        <div className="rounded-xl border border-border/50 bg-card p-5">
-          <div className="mb-5 flex items-center justify-between">
-            <span className="text-[13px] font-medium text-muted-foreground">Taux de lecture</span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground">
-              <Activity className="h-4 w-4" />
+        <div className="rounded-xl border border-border/50 bg-card p-5 flex flex-col justify-between h-full">
+          <div>
+            <div className="mb-5 flex items-center justify-between">
+              <span className="text-[13px] font-medium text-muted-foreground">Taux de lecture</span>
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground">
+                <Activity className="h-4 w-4" />
+              </div>
             </div>
+            {autorisationsLoading ? (
+              <Skeleton className="h-8 w-12" />
+            ) : (
+              <p className="text-[28px] font-semibold leading-none tracking-tight">{total > 0 ? Math.round(((total - unread) / total) * 100) : 0}%</p>
+            )}
           </div>
-          {autorisationsLoading ? (
-            <Skeleton className="h-8 w-12" />
-          ) : (
-            <p className="text-[28px] font-semibold leading-none tracking-tight">{total > 0 ? Math.round(((total - unread) / total) * 100) : 0}%</p>
-          )}
           <p className="mt-1.5 text-[13px] text-muted-foreground">Autorisations lues</p>
         </div>
       </div>
