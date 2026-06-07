@@ -104,41 +104,42 @@ export default function LoginPage() {
     },
   ];
 
+  // Local styles for subtle text shadows to improve legibility over the photo
+  const darkTextShadow = { textShadow: '0 1px 2px rgba(0,0,0,0.65)' };
+
   return (
-    <div className="flex h-screen overflow-hidden selection:bg-[#0F766E]/20">
+    <div className="relative flex h-screen overflow-hidden selection:bg-[#0F766E]/20">
+
+      {/* ═══ Continuous campus photo background (spans full screen) ═══ */}
+      <Image
+        src="/ista-tiznit.png"
+        alt="ISTA Tiznit"
+        fill
+        preload
+        loading="eager"
+        fetchPriority="high"
+        sizes="100vw"
+        unoptimized
+        className="object-cover object-center select-none pointer-events-none -z-20"
+      />
+
+      {/* One continuous desktop treatment with a 250px cinematic transition zone */}
+      <div
+        className="absolute inset-0 -z-10 hidden lg:block pointer-events-none"
+        style={{
+          background:
+            'linear-gradient(90deg, rgba(8,24,38,0.48) 0%, rgba(10,36,52,0.40) calc(53% - 125px), rgba(15,23,42,0.35) calc(53% - 80px), rgba(15,23,42,0.24) calc(53% - 20px), rgba(255,255,255,0.08) calc(53% + 45px), rgba(255,255,255,0.12) calc(53% + 125px), rgba(255,255,255,0.18) 100%)',
+        }}
+      />
+      <div className="absolute top-[15%] right-[51%] -z-10 hidden h-[520px] w-[520px] rounded-full bg-[#0F766E]/14 blur-[90px] pointer-events-none lg:block" />
+      <div className="absolute top-0 right-0 -z-10 hidden h-[560px] w-[560px] bg-gradient-to-bl from-[#E9D5A8]/24 via-[#F2E3BC]/12 to-transparent pointer-events-none lg:block" />
+      <div className="absolute -top-40 left-[76%] -z-10 hidden h-[460px] w-[760px] -translate-x-1/2 rounded-full bg-white/[0.07] blur-[60px] pointer-events-none lg:block" />
 
       {/* ═══ LEFT: Branding Panel ═══ */}
-      <div className="hidden lg:flex lg:w-[54%] xl:w-[52%] relative overflow-hidden" style={{ background: 'linear-gradient(165deg, #0A0F1E 0%, #0C1425 40%, #0A1628 100%)' }}>
+      <div className="hidden lg:flex lg:w-[54%] xl:w-[52%] relative overflow-hidden">
 
-        {/* Ambient orbs */}
-        <div className="absolute top-[20%] right-[10%] w-[600px] h-[600px] bg-[#0F766E]/[0.10] rounded-full blur-[160px] pointer-events-none" />
-        <div className="absolute bottom-[5%] left-[5%] w-[500px] h-[500px] bg-[#2563EB]/[0.05] rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute top-[60%] right-[40%] w-[300px] h-[300px] bg-[#7C3AED]/[0.04] rounded-full blur-[100px] pointer-events-none" />
-
-        {/* Grid overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.025]"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, #94A3B8 1px, transparent 1px),
-              linear-gradient(to bottom, #94A3B8 1px, transparent 1px)
-            `,
-            backgroundSize: '56px 56px',
-            maskImage: 'radial-gradient(ellipse 80% 60% at 60% 40%, #000 10%, transparent 100%)',
-            WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 60% 40%, #000 10%, transparent 100%)',
-          }}
-        />
-
-        {/* Dot accent */}
-        <div
-          className="absolute inset-0 opacity-[0.035]"
-          style={{
-            backgroundImage: 'radial-gradient(circle at 1px 1px, #2DD4BF 0.7px, transparent 0.7px)',
-            backgroundSize: '28px 28px',
-            maskImage: 'radial-gradient(ellipse 35% 45% at 25% 65%, #000 0%, transparent 100%)',
-            WebkitMaskImage: 'radial-gradient(ellipse 35% 45% at 25% 65%, #000 0%, transparent 100%)',
-          }}
-        />
+        {/* Ambient teal glow accents (subtle, less intrusive) */}
+        <div className="absolute bottom-[10%] left-[5%] w-[420px] h-[420px] bg-[#2DD4BF]/8 rounded-full blur-[80px] pointer-events-none" />
 
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-center h-full w-full max-w-[520px] ml-auto mr-16 xl:mr-24 px-8">
@@ -163,14 +164,12 @@ export default function LoginPage() {
             </div>
 
             {/* Headline */}
-            <h2 className="text-[36px] xl:text-[40px] font-bold text-white tracking-[-0.02em] leading-[1.05] mb-4 max-w-[520px]">
+            <h2 className="text-[36px] xl:text-[40px] font-bold text-[#FFFFFF] tracking-[-0.02em] leading-[1.05] mb-4 max-w-[520px]">
               Gestion intelligente
               <br />
-              <span className="bg-gradient-to-r from-[#2DD4BF] via-[#5EEAD4] to-[#34D399] bg-clip-text text-transparent">
-                des absences
-              </span>
+              <span className="text-[#2DD4BF]">des absences</span>
             </h2>
-            <p className="text-[15px] text-slate-200/90 leading-[1.65] mb-8 max-w-[420px]">
+            <p className="text-[15px] text-white/[0.85] leading-[1.65] mb-8 max-w-[420px]">
               Une plateforme moderne et centralisée pour automatiser le suivi des absences et simplifier la gestion de l&apos;établissement.
             </p>
           </div>
@@ -180,17 +179,21 @@ export default function LoginPage() {
             {features.map((feature, i) => (
               <div
                 key={feature.title}
-                className={`group flex items-center gap-3.5 px-4 py-3 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.07] hover:border-white/[0.15] transition-all duration-300 ${
+                className={`group flex items-center gap-3.5 px-4 py-3 rounded-xl border border-white/16 bg-white/[0.08] backdrop-blur-sm shadow-[0_8px_22px_rgba(2,6,23,0.10)] hover:bg-white/[0.10] hover:border-white/[0.20] hover:-translate-y-[3px] hover:shadow-[0_12px_28px_rgba(2,6,23,0.16)] transition-all duration-300 ease-out ${
                   mounted ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-6'
                 }`}
                 style={{ transitionDelay: mounted ? `${200 + i * 100}ms` : '0ms' }}
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-b from-[#0F766E]/25 to-[#0F766E]/8 border border-[#0F766E]/25 group-hover:border-[#0F766E]/35 transition-all duration-300">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-b from-[#0F766E]/22 to-[#0F766E]/8 border border-[#0F766E]/20 group-hover:border-[#0F766E]/30 transition-all duration-300">
                   <feature.icon className="h-[17px] w-[17px] text-[#2DD4BF]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13.5px] font-semibold text-white leading-tight">{feature.title}</p>
-                  <p className="text-[12.5px] text-slate-300 leading-snug mt-0.5">{feature.desc}</p>
+                  <p className="text-[13.5px] font-semibold text-white/[0.95] leading-tight">
+                    {feature.title}
+                  </p>
+                  <p className="text-[12.5px] text-white/[0.82] leading-snug mt-0.5 font-medium">
+                    {feature.desc}
+                  </p>
                 </div>
               </div>
             ))}
@@ -199,21 +202,26 @@ export default function LoginPage() {
       </div>
 
       {/* ═══ RIGHT: Auth Panel ═══ */}
-      <div className="flex flex-1 items-center justify-center bg-white px-6 relative overflow-hidden">
+      <div className="flex flex-1 items-center justify-center px-6 relative overflow-hidden">
 
-        {/* Corner gradients */}
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-bl from-[#F1F5F9] to-transparent pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-to-tr from-[#F8FAFC] to-transparent pointer-events-none" />
+        {/* Mobile-only glass wash; desktop uses the continuous page-level transition */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/16 via-white/[0.07] to-white/[0.03] backdrop-blur-[0.75px] pointer-events-none lg:hidden" />
+
+        {/* Warm corner washes for subtle depth */}
+        <div className="absolute top-0 right-0 w-[560px] h-[560px] bg-gradient-to-bl from-[#E9D5A8]/24 via-[#F2E3BC]/12 to-transparent pointer-events-none lg:hidden" />
+
+        {/* Soft top-light highlight (reduced intensity and blur) */}
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[760px] h-[460px] bg-white/[0.07] rounded-full blur-[60px] pointer-events-none lg:hidden" />
 
         <div
-          className={`relative z-10 w-full max-w-[380px] transition-all duration-600 ease-out ${
+          className={`relative z-10 w-full max-w-[400px] transition-all duration-600 ease-out ${
             mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}
           style={{ transitionDelay: '200ms' }}
         >
           {/* Mobile branding */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="relative h-11 w-11 rounded-xl overflow-hidden shadow-md ring-1 ring-slate-100">
+            <div className="relative h-11 w-11 rounded-xl overflow-hidden shadow-md ring-1 ring-[#E5D6B6]">
               <Image
                 src="/ofppt-logo.png"
                 alt="Logo OFPPT"
@@ -224,14 +232,14 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <p className="text-[14px] font-bold text-[#0F172A] tracking-tight">OFPPT</p>
-              <p className="text-[11px] text-slate-500 font-medium">ISTA Tiznit</p>
+              <p className="text-[14px] font-bold text-[#1F1A12] tracking-tight">OFPPT</p>
+              <p className="text-[11px] text-[#6B5A3F] font-medium">ISTA Tiznit</p>
             </div>
           </div>
 
           {/* Desktop logo */}
           <div className="hidden lg:block mb-7">
-            <div className="relative h-11 w-11 rounded-xl overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.07)] ring-1 ring-slate-100">
+            <div className="relative h-14 w-14 rounded-[14px] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.08)] ring-1 ring-white/[0.1]">
               <Image
                 src="/ofppt-logo.png"
                 alt="Logo OFPPT"
@@ -247,10 +255,10 @@ export default function LoginPage() {
             <>
               {/* Heading */}
               <div className="mb-7">
-                <h1 className="text-[26px] font-bold tracking-[-0.02em] text-[#0F172A] leading-tight">
+                <h1 className="text-[28px] font-bold tracking-[-0.02em] text-[#0F172A] leading-tight">
                   Bon retour
                 </h1>
-                <p className="mt-2 text-[14px] text-[#64748B] leading-relaxed">
+                <p className="mt-2 text-[14px] font-medium text-[#475569] leading-relaxed">
                   Connectez-vous à votre espace de gestion
                 </p>
               </div>
@@ -267,7 +275,7 @@ export default function LoginPage() {
                     type="email"
                     placeholder="nom@ofppt.local"
                     {...register('email')}
-                    className="h-[42px] rounded-[10px] border-[#E2E8F0] bg-[#F8FAFC] text-[14px] placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/15 focus-visible:border-[#0F766E]/40 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+                    className="h-[46px] rounded-[12px] border-[#E5D6B6]/80 bg-white/85 backdrop-blur-sm text-[14px] text-[#1F1A12] placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/20 focus-visible:border-[#0F766E]/50 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(120,80,30,0.05),inset_0_1px_0_rgba(255,255,255,0.6)]"
                     autoFocus
                   />
                   {errors.email && (
@@ -287,7 +295,7 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowForgotPassword(true)}
-                      className="text-[12px] text-[#0F766E] font-semibold hover:text-[#115E59] transition-colors"
+                      className="text-[12px] text-[#e9f0ef] "
                     >
                       Oublié ?
                     </button>
@@ -299,12 +307,12 @@ export default function LoginPage() {
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       {...register('password')}
-                      className="h-[42px] rounded-[10px] border-[#E2E8F0] bg-[#F8FAFC] text-[14px] pr-11 placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/15 focus-visible:border-[#0F766E]/40 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+                      className="h-[46px] rounded-[12px] border-[#E5D6B6]/80 bg-white/85 backdrop-blur-sm text-[14px] text-[#1F1A12] pr-11 placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/20 focus-visible:border-[#0F766E]/50 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(120,80,30,0.05),inset_0_1px_0_rgba(255,255,255,0.6)]"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-0 top-0 h-[42px] w-11 flex items-center justify-center text-[#94A3B8] hover:text-[#475569] transition-colors"
+                      className="absolute right-0 top-0 h-[46px] w-11 flex items-center justify-center text-[#A89978] hover:text-[#3F2E14] transition-colors"
                     >
                       {showPassword ? <EyeOff className="h-[15px] w-[15px]" /> : <Eye className="h-[15px] w-[15px]" />}
                     </button>
@@ -321,7 +329,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-[42px] rounded-[10px] bg-[#0F766E] hover:bg-[#115E59] active:bg-[#134E4A] text-white font-semibold text-[14px] transition-all duration-200 mt-1 shadow-[0_1px_3px_rgba(15,118,110,0.4),0_4px_12px_rgba(15,118,110,0.15)] hover:shadow-[0_1px_3px_rgba(15,118,110,0.5),0_6px_20px_rgba(15,118,110,0.2)] disabled:opacity-50"
+                  className="w-full h-[48px] rounded-[12px] bg-[#0F766E] hover:bg-[#115E59] active:bg-[#134E4A] text-white font-semibold text-[14px] transition-all duration-200 mt-2 shadow-[0_4px_12px_rgba(15,118,110,0.18)] hover:shadow-[0_6px_16px_rgba(15,118,110,0.22)] hover:-translate-y-[1px] focus-visible:ring-2 focus-visible:ring-[#0F766E]/25 focus-visible:ring-offset-2 disabled:opacity-50 disabled:hover:translate-y-0"
                 >
                   {loading ? (
                     <div className="flex items-center gap-2">
@@ -341,10 +349,10 @@ export default function LoginPage() {
             <>
               {/* Heading */}
               <div className="mb-7">
-                <h1 className="text-[26px] font-bold tracking-[-0.02em] text-[#0F172A] leading-tight">
+                <h1 className="text-[28px] font-bold tracking-[-0.02em] text-[#0F172A] leading-tight">
                   Mot de passe oublié ?
                 </h1>
-                <p className="mt-2 text-[14px] text-[#64748B] leading-relaxed">
+                <p className="mt-2 text-[14px] text-[#475569] leading-relaxed">
                   Saisissez votre adresse email pour recevoir un nouveau mot de passe temporaire.
                 </p>
               </div>
@@ -362,7 +370,7 @@ export default function LoginPage() {
                     placeholder="nom@ofppt.local"
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
-                    className="h-[42px] rounded-[10px] border-[#E2E8F0] bg-[#F8FAFC] text-[14px] placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/15 focus-visible:border-[#0F766E]/40 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+                    className="h-[46px] rounded-[12px] border-[#E5D6B6]/80 bg-white/85 backdrop-blur-sm text-[14px] text-[#1F1A12] placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/20 focus-visible:border-[#0F766E]/50 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(120,80,30,0.05),inset_0_1px_0_rgba(255,255,255,0.6)]"
                     autoFocus
                   />
                 </div>
@@ -371,7 +379,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={forgotLoading}
-                  className="w-full h-[42px] rounded-[10px] bg-[#0F766E] hover:bg-[#115E59] active:bg-[#134E4A] text-white font-semibold text-[14px] transition-all duration-200 mt-1 shadow-[0_1px_3px_rgba(15,118,110,0.4),0_4px_12px_rgba(15,118,110,0.15)] hover:shadow-[0_1px_3px_rgba(15,118,110,0.5),0_6px_20px_rgba(15,118,110,0.2)] disabled:opacity-50"
+                  className="w-full h-[48px] rounded-[12px] bg-[#0F766E] hover:bg-[#115E59] active:bg-[#134E4A] text-white font-semibold text-[14px] transition-all duration-200 mt-2 shadow-[0_4px_12px_rgba(15,118,110,0.18)] hover:shadow-[0_6px_16px_rgba(15,118,110,0.22)] hover:-translate-y-[1px] focus-visible:ring-2 focus-visible:ring-[#0F766E]/25 focus-visible:ring-offset-2 disabled:opacity-50 disabled:hover:translate-y-0"
                 >
                   {forgotLoading ? (
                     <div className="flex items-center gap-2">
@@ -393,7 +401,7 @@ export default function LoginPage() {
                     setShowForgotPassword(false);
                     setForgotEmail('');
                   }}
-                  className="w-full text-center text-[13px] text-[#64748B] font-semibold hover:text-[#475569] transition-colors mt-2"
+                  className="w-full text-center text-[13px] text-[#6B5A3F] font-semibold hover:text-[#3F2E14] transition-colors mt-2"
                 >
                   Retour à la connexion
                 </button>
@@ -402,19 +410,19 @@ export default function LoginPage() {
           )}
 
           {/* Trust badges */}
-          <div className="mt-6 grid grid-cols-2 gap-2">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-[10px] bg-[#F8FAFC] border border-[#E2E8F0]/70">
+          <div className="mt-6 grid grid-cols-2 gap-2.5">
+            <div className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-[12px] bg-white/70 backdrop-blur-sm border border-[#E5D6B6]/70 shadow-[0_1px_3px_rgba(120,80,30,0.05),inset_0_1px_0_rgba(255,255,255,0.6)] hover:bg-white/85 transition-colors">
               <Shield className="h-3.5 w-3.5 text-[#0F766E] shrink-0" />
-              <p className="text-[11px] text-[#475569] font-medium leading-tight">Chiffrement SSL</p>
+              <p className="text-[11px] text-[#3F2E14] font-medium leading-tight">Chiffrement SSL</p>
             </div>
-            <div className="flex items-center gap-2 px-3 py-2 rounded-[10px] bg-[#F8FAFC] border border-[#E2E8F0]/70">
+            <div className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-[12px] bg-white/70 backdrop-blur-sm border border-[#E5D6B6]/70 shadow-[0_1px_3px_rgba(120,80,30,0.05),inset_0_1px_0_rgba(255,255,255,0.6)] hover:bg-white/85 transition-colors">
               <CheckCircle2 className="h-3.5 w-3.5 text-[#0F766E] shrink-0" />
-              <p className="text-[11px] text-[#475569] font-medium leading-tight">Accès sécurisé</p>
+              <p className="text-[11px] text-[#3F2E14] font-medium leading-tight">Accès sécurisé</p>
             </div>
           </div>
 
           {/* Footer */}
-          <p className="mt-6 text-center text-[11px] text-[#94A3B8]">
+          <p className="mt-6 text-center text-[11px] text-[#fcfcfc]" style={darkTextShadow}>
             OFPPT – ISTA Tiznit © {new Date().getFullYear()}
           </p>
         </div>
