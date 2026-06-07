@@ -104,14 +104,8 @@ export default function LoginPage() {
     },
   ];
 
-  // Subtle text-shadow styles to improve legibility over the photo
-  const textShadowStrong = { textShadow: '0 1px 2px rgba(0,0,0,0.65)' };
-  const textShadowSoft = { textShadow: '0 1px 2px rgba(0,0,0,0.28)' };
-  const textShadowLightEdge = { textShadow: '0 1px 0 rgba(255,255,255,0.6)' };
-
   // Local styles for subtle text shadows to improve legibility over the photo
   const darkTextShadow = { textShadow: '0 1px 2px rgba(0,0,0,0.65)' };
-  const subtleTextShadow = { textShadow: '0 1px 0 rgba(0,0,0,0.08)' };
 
   return (
     <div className="relative flex h-screen overflow-hidden selection:bg-[#0F766E]/20">
@@ -125,7 +119,7 @@ export default function LoginPage() {
         loading="eager"
         fetchPriority="high"
         sizes="100vw"
-        style={{ filter: 'contrast(1.18) saturate(1.10) brightness(1.06)', willChange: 'filter' }}
+        unoptimized
         className="object-cover object-center select-none pointer-events-none -z-20"
       />
 
@@ -143,9 +137,6 @@ export default function LoginPage() {
 
         {/* Subtle vignette (reduced to preserve building details) */}
         <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_80px_20px_rgba(0,0,0,0.18)]" />
-
-        {/* Right edge feather — softens the seam between halves */}
-        <div className="absolute top-0 right-0 bottom-0 w-32 bg-gradient-to-r from-transparent to-white/8 pointer-events-none" />
 
         {/* Localized dark gradient behind content to increase contrast (doesn't affect global overlay) */}
         <div className="absolute inset-y-0 right-0 w-[60%] max-w-[720px] z-0 pointer-events-none">
@@ -175,20 +166,12 @@ export default function LoginPage() {
             </div>
 
             {/* Headline */}
-            <h2
-              className="text-[36px] xl:text-[40px] font-bold text-white tracking-[-0.02em] leading-[1.05] mb-4 max-w-[520px]"
-              style={textShadowStrong}
-            >
+            <h2 className="text-[36px] xl:text-[40px] font-bold text-[#FFFFFF] tracking-[-0.02em] leading-[1.05] mb-4 max-w-[520px]">
               Gestion intelligente
               <br />
-              <span className="bg-gradient-to-r from-[#2DD4BF] via-[#5EEAD4] to-[#34D399] bg-clip-text text-transparent">
-                des absences
-              </span>
+              <span className="text-[#2DD4BF]">des absences</span>
             </h2>
-            <p
-              className="text-[15px] text-white/90 leading-[1.65] mb-8 max-w-[420px]"
-              style={textShadowStrong}
-            >
+            <p className="text-[15px] text-white/[0.85] leading-[1.65] mb-8 max-w-[420px]">
               Une plateforme moderne et centralisée pour automatiser le suivi des absences et simplifier la gestion de l&apos;établissement.
             </p>
           </div>
@@ -198,7 +181,7 @@ export default function LoginPage() {
             {features.map((feature, i) => (
               <div
                 key={feature.title}
-                className={`group flex items-center gap-3.5 px-4 py-3 rounded-xl border border-white/16 bg-white/[0.08] backdrop-blur-sm shadow-[0_8px_22px_rgba(2,6,23,0.10)] hover:bg-white/[0.10] hover:border-white/[0.20] transition-all duration-300 ${
+                className={`group flex items-center gap-3.5 px-4 py-3 rounded-xl border border-white/16 bg-white/[0.08] backdrop-blur-sm shadow-[0_8px_22px_rgba(2,6,23,0.10)] hover:bg-white/[0.10] hover:border-white/[0.20] hover:-translate-y-[3px] hover:shadow-[0_12px_28px_rgba(2,6,23,0.16)] transition-all duration-300 ease-out ${
                   mounted ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-6'
                 }`}
                 style={{ transitionDelay: mounted ? `${200 + i * 100}ms` : '0ms' }}
@@ -207,10 +190,10 @@ export default function LoginPage() {
                   <feature.icon className="h-[17px] w-[17px] text-[#2DD4BF]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13.5px] font-semibold text-white leading-tight" style={textShadowStrong}>
+                  <p className="text-[13.5px] font-semibold text-white/[0.95] leading-tight">
                     {feature.title}
                   </p>
-                  <p className="text-[12.5px] text-white/85 leading-snug mt-0.5 font-medium" style={textShadowSoft}>
+                  <p className="text-[12.5px] text-white/[0.82] leading-snug mt-0.5 font-medium">
                     {feature.desc}
                   </p>
                 </div>
@@ -223,18 +206,15 @@ export default function LoginPage() {
       {/* ═══ RIGHT: Auth Panel ═══ */}
       <div className="flex flex-1 items-center justify-center px-6 relative overflow-hidden">
 
-        {/* Subtle translucent white wash — lets the campus photo remain visible */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/10 to-white/6 pointer-events-none" />
+        {/* Transparent glass wash keeps the photo visible while preserving form readability */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/16 via-white/[0.07] to-white/[0.03] backdrop-blur-[0.75px] pointer-events-none" />
 
         {/* Warm corner washes for subtle depth */}
-        <div className="absolute top-0 right-0 w-[560px] h-[560px] bg-gradient-to-bl from-[#E9D5A8]/45 via-[#F2E3BC]/22 to-transparent pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[420px] h-[420px] bg-gradient-to-tr from-[#D9C291]/30 via-[#E5D2A8]/15 to-transparent pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[560px] h-[560px] bg-gradient-to-bl from-[#E9D5A8]/24 via-[#F2E3BC]/12 to-transparent pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[420px] h-[420px] bg-gradient-to-tr from-[#D9C291]/16 via-[#E5D2A8]/8 to-transparent pointer-events-none" />
 
         {/* Soft top-light highlight (reduced intensity and blur) */}
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[760px] h-[460px] bg-white/12 rounded-full blur-[60px] pointer-events-none" />
-
-        {/* Left edge feather — softens the seam */}
-        <div className="hidden lg:block absolute top-0 left-0 bottom-0 w-32 bg-gradient-to-l from-transparent to-[#0A1F2E]/4 pointer-events-none" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[760px] h-[460px] bg-white/[0.07] rounded-full blur-[60px] pointer-events-none" />
 
         <div
           className={`relative z-10 w-full max-w-[400px] transition-all duration-600 ease-out ${
@@ -260,16 +240,16 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Desktop logo — circular badge like the reference */}
+          {/* Desktop logo */}
           <div className="hidden lg:block mb-7">
-            <div className="relative h-12 w-12 rounded-full overflow-hidden bg-white shadow-[0_2px_8px_rgba(120,80,30,0.12),0_0_0_1px_rgba(229,214,182,0.6)] ring-1 ring-white/80">
+            <div className="relative h-14 w-14 rounded-[14px] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.08)] ring-1 ring-white/[0.1]">
               <Image
                 src="/ofppt-logo.png"
                 alt="Logo OFPPT"
                 fill
                 sizes="100vw"
                 loading="eager"
-                className="object-contain p-1.5 bg-white"
+                className="object-cover bg-white"
               />
             </div>
           </div>
@@ -278,10 +258,10 @@ export default function LoginPage() {
             <>
               {/* Heading */}
               <div className="mb-7">
-                <h1 className="text-[28px] font-bold tracking-[-0.02em] text-[#1F1A12] leading-tight">
+                <h1 className="text-[28px] font-bold tracking-[-0.02em] text-[#0F172A] leading-tight">
                   Bon retour
                 </h1>
-                <p className="mt-2 text-[14px] text-[#6B5A3F] leading-relaxed">
+                <p className="mt-2 text-[14px] font-medium text-[#475569] leading-relaxed">
                   Connectez-vous à votre espace de gestion
                 </p>
               </div>
@@ -289,7 +269,7 @@ export default function LoginPage() {
               <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
                 {/* Email */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-[13px] font-semibold text-[#3F2E14]">
+                  <Label htmlFor="email" className="text-[13px] font-semibold text-[#334155]">
                     Adresse email
                   </Label>
                   <Input
@@ -298,7 +278,7 @@ export default function LoginPage() {
                     type="email"
                     placeholder="nom@ofppt.local"
                     {...register('email')}
-                    className="h-[46px] rounded-[12px] border-[#E5D6B6]/80 bg-white/85 backdrop-blur-sm text-[14px] text-[#1F1A12] placeholder:text-[#B8A77E] focus-visible:ring-2 focus-visible:ring-[#0F766E]/20 focus-visible:border-[#0F766E]/50 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(120,80,30,0.05),inset_0_1px_0_rgba(255,255,255,0.6)]"
+                    className="h-[46px] rounded-[12px] border-[#E5D6B6]/80 bg-white/85 backdrop-blur-sm text-[14px] text-[#1F1A12] placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/20 focus-visible:border-[#0F766E]/50 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(120,80,30,0.05),inset_0_1px_0_rgba(255,255,255,0.6)]"
                     autoFocus
                   />
                   {errors.email && (
@@ -312,13 +292,13 @@ export default function LoginPage() {
                 {/* Password */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-[13px] font-semibold text-[#3F2E14]">
+                    <Label htmlFor="password" className="text-[13px] font-semibold text-[#334155]">
                       Mot de passe
                     </Label>
                     <button
                       type="button"
                       onClick={() => setShowForgotPassword(true)}
-                      className="text-[12px] text-[#0F766E] font-semibold hover:text-[#115E59] transition-colors"
+                      className="text-[12px] text-[#e9f0ef] "
                     >
                       Oublié ?
                     </button>
@@ -330,7 +310,7 @@ export default function LoginPage() {
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       {...register('password')}
-                      className="h-[46px] rounded-[12px] border-[#E5D6B6]/80 bg-white/85 backdrop-blur-sm text-[14px] text-[#1F1A12] pr-11 placeholder:text-[#B8A77E] focus-visible:ring-2 focus-visible:ring-[#0F766E]/20 focus-visible:border-[#0F766E]/50 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(120,80,30,0.05),inset_0_1px_0_rgba(255,255,255,0.6)]"
+                      className="h-[46px] rounded-[12px] border-[#E5D6B6]/80 bg-white/85 backdrop-blur-sm text-[14px] text-[#1F1A12] pr-11 placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/20 focus-visible:border-[#0F766E]/50 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(120,80,30,0.05),inset_0_1px_0_rgba(255,255,255,0.6)]"
                     />
                     <button
                       type="button"
@@ -352,7 +332,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-[48px] rounded-[12px] bg-gradient-to-b from-[#0F766E] to-[#0D5C56] hover:from-[#115E59] hover:to-[#0A4D48] active:from-[#134E4A] active:to-[#093F3B] text-white font-semibold text-[14px] transition-all duration-200 mt-2 shadow-[0_2px_4px_rgba(15,118,110,0.35),0_8px_24px_rgba(15,118,110,0.22)] hover:shadow-[0_2px_6px_rgba(15,118,110,0.45),0_14px_32px_rgba(15,118,110,0.28)] hover:-translate-y-[1px] disabled:opacity-50 disabled:hover:translate-y-0"
+                  className="w-full h-[48px] rounded-[12px] bg-[#0F766E] hover:bg-[#115E59] active:bg-[#134E4A] text-white font-semibold text-[14px] transition-all duration-200 mt-2 shadow-[0_4px_12px_rgba(15,118,110,0.18)] hover:shadow-[0_6px_16px_rgba(15,118,110,0.22)] hover:-translate-y-[1px] focus-visible:ring-2 focus-visible:ring-[#0F766E]/25 focus-visible:ring-offset-2 disabled:opacity-50 disabled:hover:translate-y-0"
                 >
                   {loading ? (
                     <div className="flex items-center gap-2">
@@ -372,10 +352,10 @@ export default function LoginPage() {
             <>
               {/* Heading */}
               <div className="mb-7">
-                <h1 className="text-[28px] font-bold tracking-[-0.02em] text-[#1F1A12] leading-tight">
+                <h1 className="text-[28px] font-bold tracking-[-0.02em] text-[#0F172A] leading-tight">
                   Mot de passe oublié ?
                 </h1>
-                <p className="mt-2 text-[14px] text-[#6B5A3F] leading-relaxed">
+                <p className="mt-2 text-[14px] text-[#475569] leading-relaxed">
                   Saisissez votre adresse email pour recevoir un nouveau mot de passe temporaire.
                 </p>
               </div>
@@ -383,7 +363,7 @@ export default function LoginPage() {
               <form onSubmit={handleForgotPasswordSubmit} noValidate className="space-y-4">
                 {/* Email */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="forgot-email" className="text-[13px] font-semibold text-[#3F2E14]">
+                  <Label htmlFor="forgot-email" className="text-[13px] font-semibold text-[#334155]">
                     Adresse email
                   </Label>
                   <Input
@@ -393,7 +373,7 @@ export default function LoginPage() {
                     placeholder="nom@ofppt.local"
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
-                    className="h-[46px] rounded-[12px] border-[#E5D6B6]/80 bg-white/85 backdrop-blur-sm text-[14px] text-[#1F1A12] placeholder:text-[#B8A77E] focus-visible:ring-2 focus-visible:ring-[#0F766E]/20 focus-visible:border-[#0F766E]/50 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(120,80,30,0.05),inset_0_1px_0_rgba(255,255,255,0.6)]"
+                    className="h-[46px] rounded-[12px] border-[#E5D6B6]/80 bg-white/85 backdrop-blur-sm text-[14px] text-[#1F1A12] placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/20 focus-visible:border-[#0F766E]/50 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(120,80,30,0.05),inset_0_1px_0_rgba(255,255,255,0.6)]"
                     autoFocus
                   />
                 </div>
@@ -402,7 +382,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={forgotLoading}
-                  className="w-full h-[48px] rounded-[12px] bg-gradient-to-b from-[#0F766E] to-[#0D5C56] hover:from-[#115E59] hover:to-[#0A4D48] active:from-[#134E4A] active:to-[#093F3B] text-white font-semibold text-[14px] transition-all duration-200 mt-2 shadow-[0_2px_4px_rgba(15,118,110,0.35),0_8px_24px_rgba(15,118,110,0.22)] hover:shadow-[0_2px_6px_rgba(15,118,110,0.45),0_14px_32px_rgba(15,118,110,0.28)] hover:-translate-y-[1px] disabled:opacity-50 disabled:hover:translate-y-0"
+                  className="w-full h-[48px] rounded-[12px] bg-[#0F766E] hover:bg-[#115E59] active:bg-[#134E4A] text-white font-semibold text-[14px] transition-all duration-200 mt-2 shadow-[0_4px_12px_rgba(15,118,110,0.18)] hover:shadow-[0_6px_16px_rgba(15,118,110,0.22)] hover:-translate-y-[1px] focus-visible:ring-2 focus-visible:ring-[#0F766E]/25 focus-visible:ring-offset-2 disabled:opacity-50 disabled:hover:translate-y-0"
                 >
                   {forgotLoading ? (
                     <div className="flex items-center gap-2">
@@ -445,7 +425,7 @@ export default function LoginPage() {
           </div>
 
           {/* Footer */}
-          <p className="mt-6 text-center text-[11px] text-[#fcfcfc]">
+          <p className="mt-6 text-center text-[11px] text-[#fcfcfc]" style={darkTextShadow}>
             OFPPT – ISTA Tiznit © {new Date().getFullYear()}
           </p>
         </div>
