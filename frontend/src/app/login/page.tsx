@@ -123,25 +123,23 @@ export default function LoginPage() {
         className="object-cover object-center select-none pointer-events-none -z-20"
       />
 
+      {/* One continuous desktop treatment with a 250px cinematic transition zone */}
+      <div
+        className="absolute inset-0 -z-10 hidden lg:block pointer-events-none"
+        style={{
+          background:
+            'linear-gradient(90deg, rgba(8,24,38,0.48) 0%, rgba(10,36,52,0.40) calc(53% - 125px), rgba(15,23,42,0.35) calc(53% - 80px), rgba(15,23,42,0.24) calc(53% - 20px), rgba(255,255,255,0.08) calc(53% + 45px), rgba(255,255,255,0.12) calc(53% + 125px), rgba(255,255,255,0.18) 100%)',
+        }}
+      />
+      <div className="absolute top-[15%] right-[51%] -z-10 hidden h-[520px] w-[520px] rounded-full bg-[#0F766E]/14 blur-[90px] pointer-events-none lg:block" />
+      <div className="absolute top-0 right-0 -z-10 hidden h-[560px] w-[560px] bg-gradient-to-bl from-[#E9D5A8]/24 via-[#F2E3BC]/12 to-transparent pointer-events-none lg:block" />
+      <div className="absolute -top-40 left-[76%] -z-10 hidden h-[460px] w-[760px] -translate-x-1/2 rounded-full bg-white/[0.07] blur-[60px] pointer-events-none lg:block" />
+
       {/* ═══ LEFT: Branding Panel ═══ */}
       <div className="hidden lg:flex lg:w-[54%] xl:w-[52%] relative overflow-hidden">
 
-        {/* Refined dark teal-navy overlay (reduced opacity so photo remains visible) */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#081826]/48 via-[#0A2434]/36 to-[#0A1424]/42 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#06121E]/20 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute inset-0 bg-[#0F766E]/[0.03] mix-blend-overlay pointer-events-none" />
-
         {/* Ambient teal glow accents (subtle, less intrusive) */}
-        <div className="absolute top-[15%] right-[8%] w-[520px] h-[520px] bg-[#0F766E]/14 rounded-full blur-[90px] pointer-events-none" />
         <div className="absolute bottom-[10%] left-[5%] w-[420px] h-[420px] bg-[#2DD4BF]/8 rounded-full blur-[80px] pointer-events-none" />
-
-        {/* Subtle vignette (reduced to preserve building details) */}
-        <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_80px_20px_rgba(0,0,0,0.18)]" />
-
-        {/* Localized dark gradient behind content to increase contrast (doesn't affect global overlay) */}
-        <div className="absolute inset-y-0 right-0 w-[60%] max-w-[720px] z-0 pointer-events-none">
-          <div className="h-full w-full bg-gradient-to-l from-black/40 via-black/12 to-transparent" />
-        </div>
 
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-center h-full w-full max-w-[520px] ml-auto mr-16 xl:mr-24 px-8">
@@ -206,15 +204,14 @@ export default function LoginPage() {
       {/* ═══ RIGHT: Auth Panel ═══ */}
       <div className="flex flex-1 items-center justify-center px-6 relative overflow-hidden">
 
-        {/* Transparent glass wash keeps the photo visible while preserving form readability */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/16 via-white/[0.07] to-white/[0.03] backdrop-blur-[0.75px] pointer-events-none" />
+        {/* Mobile-only glass wash; desktop uses the continuous page-level transition */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/16 via-white/[0.07] to-white/[0.03] backdrop-blur-[0.75px] pointer-events-none lg:hidden" />
 
         {/* Warm corner washes for subtle depth */}
-        <div className="absolute top-0 right-0 w-[560px] h-[560px] bg-gradient-to-bl from-[#E9D5A8]/24 via-[#F2E3BC]/12 to-transparent pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[420px] h-[420px] bg-gradient-to-tr from-[#D9C291]/16 via-[#E5D2A8]/8 to-transparent pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[560px] h-[560px] bg-gradient-to-bl from-[#E9D5A8]/24 via-[#F2E3BC]/12 to-transparent pointer-events-none lg:hidden" />
 
         {/* Soft top-light highlight (reduced intensity and blur) */}
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[760px] h-[460px] bg-white/[0.07] rounded-full blur-[60px] pointer-events-none" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[760px] h-[460px] bg-white/[0.07] rounded-full blur-[60px] pointer-events-none lg:hidden" />
 
         <div
           className={`relative z-10 w-full max-w-[400px] transition-all duration-600 ease-out ${
