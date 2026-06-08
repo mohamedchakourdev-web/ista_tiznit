@@ -104,9 +104,6 @@ export default function LoginPage() {
     },
   ];
 
-  // Local styles for subtle text shadows to improve legibility over the photo
-  const darkTextShadow = { textShadow: '0 1px 2px rgba(0,0,0,0.65)' };
-
   return (
     <div className="relative flex h-screen overflow-hidden selection:bg-[#0F766E]/20">
 
@@ -219,6 +216,9 @@ export default function LoginPage() {
           }`}
           style={{ transitionDelay: '200ms' }}
         >
+          {/* Frosted glass lift — keeps photo visible, gives form a clean reading surface */}
+          <div className="absolute -inset-x-6 -inset-y-7 lg:-inset-x-7 lg:-inset-y-8 rounded-[28px] bg-white/[0.55] backdrop-blur-[10px] border border-white/60 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.30),0_2px_8px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.85)] pointer-events-none -z-[1]" />
+
           {/* Mobile branding */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
             <div className="relative h-11 w-11 rounded-xl overflow-hidden shadow-md ring-1 ring-[#E5D6B6]">
@@ -239,14 +239,14 @@ export default function LoginPage() {
 
           {/* Desktop logo */}
           <div className="hidden lg:block mb-7">
-            <div className="relative h-14 w-14 rounded-[14px] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.08)] ring-1 ring-white/[0.1]">
+            <div className="relative h-12 w-12 rounded-full overflow-hidden shadow-[0_4px_14px_rgba(15,23,42,0.18),0_0_0_1px_rgba(229,214,182,0.55)] ring-1 ring-white/70">
               <Image
                 src="/ofppt-logo.png"
                 alt="Logo OFPPT"
                 fill
                 sizes="100vw"
                 loading="eager"
-                className="object-cover bg-white"
+                className="object-cover scale-[1.18]"
               />
             </div>
           </div>
@@ -275,7 +275,7 @@ export default function LoginPage() {
                     type="email"
                     placeholder="nom@ofppt.local"
                     {...register('email')}
-                    className="h-[46px] rounded-[12px] border-[#E5D6B6]/80 bg-white/85 backdrop-blur-sm text-[14px] text-[#1F1A12] placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/20 focus-visible:border-[#0F766E]/50 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(120,80,30,0.05),inset_0_1px_0_rgba(255,255,255,0.6)]"
+                    className="h-[46px] rounded-[12px] border border-white/70 bg-white/90 backdrop-blur-sm text-[14px] text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/25 focus-visible:border-[#0F766E]/55 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.7)]"
                     autoFocus
                   />
                   {errors.email && (
@@ -295,7 +295,7 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowForgotPassword(true)}
-                      className="text-[12px] text-[#e9f0ef] "
+                      className="text-[12px] font-semibold text-[#0F766E] hover:text-[#115E59] underline-offset-4 hover:underline transition-colors"
                     >
                       Oublié ?
                     </button>
@@ -307,12 +307,12 @@ export default function LoginPage() {
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       {...register('password')}
-                      className="h-[46px] rounded-[12px] border-[#E5D6B6]/80 bg-white/85 backdrop-blur-sm text-[14px] text-[#1F1A12] pr-11 placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/20 focus-visible:border-[#0F766E]/50 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(120,80,30,0.05),inset_0_1px_0_rgba(255,255,255,0.6)]"
+                      className="h-[46px] rounded-[12px] border border-white/70 bg-white/90 backdrop-blur-sm text-[14px] text-[#0F172A] pr-11 placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/25 focus-visible:border-[#0F766E]/55 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.7)]"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-0 top-0 h-[46px] w-11 flex items-center justify-center text-[#A89978] hover:text-[#3F2E14] transition-colors"
+                      className="absolute right-0 top-0 h-[46px] w-11 flex items-center justify-center text-[#64748B] hover:text-[#0F172A] transition-colors"
                     >
                       {showPassword ? <EyeOff className="h-[15px] w-[15px]" /> : <Eye className="h-[15px] w-[15px]" />}
                     </button>
@@ -370,7 +370,7 @@ export default function LoginPage() {
                     placeholder="nom@ofppt.local"
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
-                    className="h-[46px] rounded-[12px] border-[#E5D6B6]/80 bg-white/85 backdrop-blur-sm text-[14px] text-[#1F1A12] placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/20 focus-visible:border-[#0F766E]/50 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(120,80,30,0.05),inset_0_1px_0_rgba(255,255,255,0.6)]"
+                    className="h-[46px] rounded-[12px] border border-white/70 bg-white/90 backdrop-blur-sm text-[14px] text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/25 focus-visible:border-[#0F766E]/55 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.7)]"
                     autoFocus
                   />
                 </div>
@@ -401,7 +401,7 @@ export default function LoginPage() {
                     setShowForgotPassword(false);
                     setForgotEmail('');
                   }}
-                  className="w-full text-center text-[13px] text-[#6B5A3F] font-semibold hover:text-[#3F2E14] transition-colors mt-2"
+                  className="w-full text-center text-[13px] font-semibold text-[#475569] hover:text-[#0F172A] transition-colors mt-2"
                 >
                   Retour à la connexion
                 </button>
@@ -411,18 +411,18 @@ export default function LoginPage() {
 
           {/* Trust badges */}
           <div className="mt-6 grid grid-cols-2 gap-2.5">
-            <div className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-[12px] bg-white/70 backdrop-blur-sm border border-[#E5D6B6]/70 shadow-[0_1px_3px_rgba(120,80,30,0.05),inset_0_1px_0_rgba(255,255,255,0.6)] hover:bg-white/85 transition-colors">
+            <div className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-[12px] bg-white/85 backdrop-blur-sm border border-white/80 shadow-[0_2px_6px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.8)] hover:bg-white transition-colors">
               <Shield className="h-3.5 w-3.5 text-[#0F766E] shrink-0" />
-              <p className="text-[11px] text-[#3F2E14] font-medium leading-tight">Chiffrement SSL</p>
+              <p className="text-[11px] text-[#1F2937] font-semibold leading-tight">Chiffrement SSL</p>
             </div>
-            <div className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-[12px] bg-white/70 backdrop-blur-sm border border-[#E5D6B6]/70 shadow-[0_1px_3px_rgba(120,80,30,0.05),inset_0_1px_0_rgba(255,255,255,0.6)] hover:bg-white/85 transition-colors">
+            <div className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-[12px] bg-white/85 backdrop-blur-sm border border-white/80 shadow-[0_2px_6px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.8)] hover:bg-white transition-colors">
               <CheckCircle2 className="h-3.5 w-3.5 text-[#0F766E] shrink-0" />
-              <p className="text-[11px] text-[#3F2E14] font-medium leading-tight">Accès sécurisé</p>
+              <p className="text-[11px] text-[#1F2937] font-semibold leading-tight">Accès sécurisé</p>
             </div>
           </div>
 
           {/* Footer */}
-          <p className="mt-6 text-center text-[11px] text-[#fcfcfc]" style={darkTextShadow}>
+          <p className="mt-6 text-center text-[11px] font-medium text-[#475569]">
             OFPPT – ISTA Tiznit © {new Date().getFullYear()}
           </p>
         </div>
