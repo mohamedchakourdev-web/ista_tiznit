@@ -11,7 +11,21 @@ import { useAuthStore } from '@/store/auth.store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, ArrowRight, Shield, BarChart3, Zap, CheckCircle2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Mail,
+  Lock,
+  Shield,
+  ShieldCheck,
+  BarChart3,
+  Zap,
+  CheckCircle2,
+  Users,
+  TrendingUp,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { getDashboardPath, getPrimaryRole, getUserFullName } from '@/utils/domain';
 
@@ -26,6 +40,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { setAuth } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -104,92 +119,104 @@ export default function LoginPage() {
     },
   ];
 
-  return (
-    <div className="relative flex h-screen overflow-hidden selection:bg-[#0F766E]/20">
+  const stats = [
+    { icon: Users, value: '1200+', label: 'Utilisateurs actifs' },
+    { icon: TrendingUp, value: '95%', label: 'Taux de présence' },
+    { icon: ShieldCheck, value: '24/7', label: 'Suivi en temps réel' },
+  ];
 
-      {/* ═══ Continuous campus photo background (spans full screen) ═══ */}
+  return (
+    <div className="relative flex h-screen w-full overflow-hidden selection:bg-[#0F766E]/20">
+      {/* ═══ Campus background photo (spans full screen, untouched) ═══ */}
       <Image
         src="/ista-tiznit.png"
         alt="ISTA Tiznit"
         fill
-        preload
-        loading="eager"
-        fetchPriority="high"
+        priority
         sizes="100vw"
         unoptimized
         className="object-cover object-center select-none pointer-events-none -z-20"
       />
 
-      {/* One continuous desktop treatment with a 250px cinematic transition zone */}
+      {/* ═══ Left-side dark overlay only — keeps the sky bright ═══ */}
+      {/* Horizontal scrim for left-edge text legibility */}
       <div
         className="absolute inset-0 -z-10 hidden lg:block pointer-events-none"
         style={{
           background:
-            'linear-gradient(90deg, rgba(8,24,38,0.48) 0%, rgba(10,36,52,0.40) calc(53% - 125px), rgba(15,23,42,0.35) calc(53% - 80px), rgba(15,23,42,0.24) calc(53% - 20px), rgba(255,255,255,0.08) calc(53% + 45px), rgba(255,255,255,0.12) calc(53% + 125px), rgba(255,255,255,0.18) 100%)',
+            'linear-gradient(90deg, rgba(7,24,38,0.55) 0%, rgba(7,24,38,0.30) 30%, rgba(7,24,38,0.10) 52%, rgba(7,24,38,0) 64%)',
         }}
       />
-      <div className="absolute top-[15%] right-[51%] -z-10 hidden h-[520px] w-[520px] rounded-full bg-[#0F766E]/14 blur-[90px] pointer-events-none lg:block" />
-      <div className="absolute top-0 right-0 -z-10 hidden h-[560px] w-[560px] bg-gradient-to-bl from-[#E9D5A8]/24 via-[#F2E3BC]/12 to-transparent pointer-events-none lg:block" />
-      <div className="absolute -top-40 left-[76%] -z-10 hidden h-[460px] w-[760px] -translate-x-1/2 rounded-full bg-white/[0.07] blur-[60px] pointer-events-none lg:block" />
+      {/* Bottom-left darken for the cards / statistics, leaving the sky untouched */}
+      <div
+        className="absolute inset-0 -z-10 hidden lg:block pointer-events-none"
+        style={{
+          background:
+            'linear-gradient(0deg, rgba(4,16,26,0.50) 0%, rgba(4,16,26,0.12) 34%, rgba(4,16,26,0) 60%)',
+        }}
+      />
+      {/* Mobile scrim so the white card reads cleanly over the photo */}
+      <div className="absolute inset-0 -z-10 lg:hidden bg-[#06141f]/45 pointer-events-none" />
 
-      {/* ═══ LEFT: Branding Panel ═══ */}
-      <div className="hidden lg:flex lg:w-[54%] xl:w-[52%] relative overflow-hidden">
+      {/* ═══ LEFT: Marketing panel ═══ */}
+      <div className="relative z-10 hidden lg:flex lg:w-[54%] flex-col justify-center px-[7%] xl:px-[8%]">
+        <div
+          className={`max-w-[480px] transition-all duration-700 ease-out ${
+            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+          }`}
+        >
+          {/* Headline */}
+          <h1 className="font-serif font-bold text-white tracking-[-0.01em] leading-[1.07] text-[44px] xl:text-[52px]">
+            Gestion intelligente
+            <br />
+            <span className="text-[#2DD4BF]">des absences</span>
+          </h1>
 
-        {/* Ambient teal glow accents (subtle, less intrusive) */}
-        <div className="absolute bottom-[10%] left-[5%] w-[420px] h-[420px] bg-[#2DD4BF]/8 rounded-full blur-[80px] pointer-events-none" />
-
-        {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center h-full w-full max-w-[520px] ml-auto mr-16 xl:mr-24 px-8">
-
-          {/* Logo + Headline (integrated flow) */}
-          <div
-            className={`transition-all duration-700 ease-out ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
-          >
-            {/* Logo */}
-            <div className="relative inline-block mb-7">
-              <div className="absolute inset-0 w-[68px] h-[68px] bg-[#0F766E]/20 rounded-[16px] blur-[20px] -translate-x-[4px] -translate-y-[4px] pointer-events-none" />
-              <div className="relative h-14 w-14 rounded-[14px] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.08)] ring-1 ring-white/[0.1]">
-                <Image
-                  src="/ofppt-logo.png"
-                  alt="Logo OFPPT"
-                  fill
-                  sizes="100vw"
-                  loading="eager"
-                  className="object-cover bg-white"
-                />
-              </div>
-            </div>
-
-            {/* Headline */}
-            <h2 className="text-[36px] xl:text-[40px] font-bold text-[#FFFFFF] tracking-[-0.02em] leading-[1.05] mb-4 max-w-[520px]">
-              Gestion intelligente
-              <br />
-              <span className="text-[#2DD4BF]">des absences</span>
-            </h2>
-            <p className="text-[15px] text-white/[0.85] leading-[1.65] mb-8 max-w-[420px]">
-              Une plateforme moderne et centralisée pour automatiser le suivi des absences et simplifier la gestion de l&apos;établissement.
-            </p>
-          </div>
+          {/* Description */}
+          <p className="mt-6 max-w-[440px] text-[16px] xl:text-[17px] leading-[1.6] text-white/75">
+            Une plateforme moderne et centralisée pour automatiser le suivi des absences et
+            simplifier la gestion de votre établissement.
+          </p>
 
           {/* Feature cards */}
-          <div className="space-y-2.5 mb-8">
+          <div className="mt-9 space-y-3 max-w-[410px]">
             {features.map((feature, i) => (
               <div
                 key={feature.title}
-                className={`group flex items-center gap-3.5 px-4 py-3 rounded-xl border border-white/16 bg-white/[0.08] backdrop-blur-sm shadow-[0_8px_22px_rgba(2,6,23,0.10)] hover:bg-white/[0.10] hover:border-white/[0.20] hover:-translate-y-[3px] hover:shadow-[0_12px_28px_rgba(2,6,23,0.16)] transition-all duration-300 ease-out ${
+                className={`flex items-center gap-4 rounded-2xl border border-white/15 bg-white/[0.08] px-4 py-3.5 shadow-[0_8px_30px_rgba(2,8,20,0.18)] backdrop-blur-md transition-all duration-500 ease-out ${
                   mounted ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-6'
                 }`}
-                style={{ transitionDelay: mounted ? `${200 + i * 100}ms` : '0ms' }}
+                style={{ transitionDelay: mounted ? `${200 + i * 90}ms` : '0ms' }}
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-b from-[#0F766E]/22 to-[#0F766E]/8 border border-[#0F766E]/20 group-hover:border-[#0F766E]/30 transition-all duration-300">
-                  <feature.icon className="h-[17px] w-[17px] text-[#2DD4BF]" />
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#2DD4BF]/20 bg-[#2DD4BF]/[0.14]">
+                  <feature.icon className="h-[22px] w-[22px] text-[#2DD4BF]" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13.5px] font-semibold text-white/[0.95] leading-tight">
+                <div className="min-w-0">
+                  <p className="text-[15.5px] font-semibold leading-tight text-white">
                     {feature.title}
                   </p>
-                  <p className="text-[12.5px] text-white/[0.82] leading-snug mt-0.5 font-medium">
-                    {feature.desc}
+                  <p className="mt-0.5 text-[13px] leading-snug text-white/65">{feature.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Statistics panel */}
+          <div
+            className={`mt-9 flex max-w-[490px] items-center rounded-2xl border border-white/12 bg-[#0a1822]/55 px-5 py-4 shadow-[0_12px_34px_rgba(2,8,20,0.28)] backdrop-blur-md transition-all duration-500 ease-out ${
+              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+            style={{ transitionDelay: mounted ? '520ms' : '0ms' }}
+          >
+            {stats.map((stat) => (
+              <div key={stat.value} className="flex flex-1 items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#2DD4BF]/[0.12]">
+                  <stat.icon className="h-[18px] w-[18px] text-[#2DD4BF]" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[20px] font-bold leading-none text-white">{stat.value}</p>
+                  <p className="mt-1 whitespace-nowrap text-[11px] leading-tight text-white/60">
+                    {stat.label}
                   </p>
                 </div>
               </div>
@@ -198,55 +225,24 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* ═══ RIGHT: Auth Panel ═══ */}
-      <div className="flex flex-1 items-center justify-center px-6 relative overflow-hidden">
-
-        {/* Mobile-only glass wash; desktop uses the continuous page-level transition */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/16 via-white/[0.07] to-white/[0.03] backdrop-blur-[0.75px] pointer-events-none lg:hidden" />
-
-        {/* Warm corner washes for subtle depth */}
-        <div className="absolute top-0 right-0 w-[560px] h-[560px] bg-gradient-to-bl from-[#E9D5A8]/24 via-[#F2E3BC]/12 to-transparent pointer-events-none lg:hidden" />
-
-        {/* Soft top-light highlight (reduced intensity and blur) */}
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[760px] h-[460px] bg-white/[0.07] rounded-full blur-[60px] pointer-events-none lg:hidden" />
-
+      {/* ═══ RIGHT: Auth card ═══ */}
+      <div className="relative z-10 flex flex-1 items-center justify-center px-6 lg:justify-end lg:pl-0 lg:pr-[3%]">
         <div
-          className={`relative z-10 w-full max-w-[400px] transition-all duration-600 ease-out ${
+          className={`w-full max-w-[480px] rounded-[32px] bg-white px-8 py-10 shadow-[0_30px_80px_-20px_rgba(8,20,35,0.45)] sm:px-10 transition-all duration-700 ease-out ${
             mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}
           style={{ transitionDelay: '200ms' }}
         >
-          {/* Frosted glass lift — keeps photo visible, gives form a clean reading surface */}
-          <div className="absolute -inset-x-6 -inset-y-7 lg:-inset-x-7 lg:-inset-y-8 rounded-[28px] bg-white/[0.55] backdrop-blur-[10px] border border-white/60 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.30),0_2px_8px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.85)] pointer-events-none -z-[1]" />
-
-          {/* Mobile branding */}
-          <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="relative h-11 w-11 rounded-xl overflow-hidden shadow-md ring-1 ring-[#E5D6B6]">
+          {/* Logo */}
+          <div className="flex justify-center">
+            <div className="relative h-[92px] w-[92px] overflow-hidden rounded-full bg-white shadow-[0_8px_24px_rgba(15,23,42,0.14)] ring-1 ring-slate-100">
               <Image
                 src="/ofppt-logo.png"
                 alt="Logo OFPPT"
                 fill
-                sizes="100vw"
+                sizes="100px"
                 loading="eager"
-                className="object-cover bg-white"
-              />
-            </div>
-            <div>
-              <p className="text-[14px] font-bold text-[#1F1A12] tracking-tight">OFPPT</p>
-              <p className="text-[11px] text-[#6B5A3F] font-medium">ISTA Tiznit</p>
-            </div>
-          </div>
-
-          {/* Desktop logo */}
-          <div className="hidden lg:block mb-7">
-            <div className="relative h-12 w-12 rounded-full overflow-hidden shadow-[0_4px_14px_rgba(15,23,42,0.18),0_0_0_1px_rgba(229,214,182,0.55)] ring-1 ring-white/70">
-              <Image
-                src="/ofppt-logo.png"
-                alt="Logo OFPPT"
-                fill
-                sizes="100vw"
-                loading="eager"
-                className="object-cover scale-[1.18]"
+                className="scale-[1.05] object-cover"
               />
             </div>
           </div>
@@ -254,32 +250,33 @@ export default function LoginPage() {
           {!showForgotPassword ? (
             <>
               {/* Heading */}
-              <div className="mb-7">
-                <h1 className="text-[28px] font-bold tracking-[-0.02em] text-[#0F172A] leading-tight">
-                  Bon retour
-                </h1>
-                <p className="mt-2 text-[14px] font-medium text-[#475569] leading-relaxed">
-                  Connectez-vous à votre espace de gestion
-                </p>
-              </div>
+              <h2 className="mt-6 text-center font-serif text-[32px] font-bold tracking-[-0.01em] text-[#1E293B]">
+                Bon retour !
+              </h2>
+              <p className="mt-2 text-center text-[15px] text-[#64748B]">
+                Connectez-vous à votre espace de gestion
+              </p>
 
-              <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+              <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-7 space-y-5">
                 {/* Email */}
-                <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-[13px] font-semibold text-[#334155]">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-[14px] font-semibold text-[#334155]">
                     Adresse email
                   </Label>
-                  <Input
-                    key="login-email"
-                    id="email"
-                    type="email"
-                    placeholder="nom@ofppt.local"
-                    {...register('email')}
-                    className="h-[46px] rounded-[12px] border border-white/70 bg-white/90 backdrop-blur-sm text-[14px] text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/25 focus-visible:border-[#0F766E]/55 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.7)]"
-                    autoFocus
-                  />
+                  <div className="relative">
+                    <Mail className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#94A3B8]" />
+                    <Input
+                      key="login-email"
+                      id="email"
+                      type="email"
+                      placeholder="nom@ofppt.local"
+                      {...register('email')}
+                      className="h-[52px] rounded-[14px] border border-[#E2E8F0] bg-white pl-12 pr-4 text-[15px] text-[#0F172A] shadow-none placeholder:text-[#94A3B8] transition-colors focus-visible:border-[#0F766E]/55 focus-visible:ring-2 focus-visible:ring-[#0F766E]/20"
+                      autoFocus
+                    />
+                  </div>
                   {errors.email && (
-                    <p className="text-[12px] text-[#DC2626] font-medium flex items-center gap-1">
+                    <p className="flex items-center gap-1 text-[12px] font-medium text-[#DC2626]">
                       <span className="inline-block h-1 w-1 rounded-full bg-[#DC2626]" />
                       {errors.email.message}
                     </p>
@@ -287,49 +284,70 @@ export default function LoginPage() {
                 </div>
 
                 {/* Password */}
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-[13px] font-semibold text-[#334155]">
+                    <Label htmlFor="password" className="text-[14px] font-semibold text-[#334155]">
                       Mot de passe
                     </Label>
                     <button
                       type="button"
                       onClick={() => setShowForgotPassword(true)}
-                      className="text-[12px] font-semibold text-[#0F766E] hover:text-[#115E59] underline-offset-4 hover:underline transition-colors"
+                      className="text-[13px] font-medium text-[#0F766E] underline-offset-4 transition-colors hover:text-[#115E59] hover:underline"
                     >
-                      Oublié ?
+                      Mot de passe oublié ?
                     </button>
                   </div>
                   <div className="relative">
+                    <Lock className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#94A3B8]" />
                     <Input
                       key={`login-password-${showPassword ? 'text' : 'password'}`}
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       {...register('password')}
-                      className="h-[46px] rounded-[12px] border border-white/70 bg-white/90 backdrop-blur-sm text-[14px] text-[#0F172A] pr-11 placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/25 focus-visible:border-[#0F766E]/55 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.7)]"
+                      className="h-[52px] rounded-[14px] border border-[#E2E8F0] bg-white pl-12 pr-12 text-[15px] text-[#0F172A] shadow-none placeholder:text-[#94A3B8] transition-colors focus-visible:border-[#0F766E]/55 focus-visible:ring-2 focus-visible:ring-[#0F766E]/20"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-0 top-0 h-[46px] w-11 flex items-center justify-center text-[#64748B] hover:text-[#0F172A] transition-colors"
+                      className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-[#94A3B8] transition-colors hover:text-[#475569]"
                     >
-                      {showPassword ? <EyeOff className="h-[15px] w-[15px]" /> : <Eye className="h-[15px] w-[15px]" />}
+                      {showPassword ? (
+                        <EyeOff className="h-[18px] w-[18px]" />
+                      ) : (
+                        <Eye className="h-[18px] w-[18px]" />
+                      )}
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="text-[12px] text-[#DC2626] font-medium flex items-center gap-1">
+                    <p className="flex items-center gap-1 text-[12px] font-medium text-[#DC2626]">
                       <span className="inline-block h-1 w-1 rounded-full bg-[#DC2626]" />
                       {errors.password.message}
                     </p>
                   )}
                 </div>
 
+                {/* Remember me */}
+                <div className="flex items-center gap-2.5">
+                  <Checkbox
+                    id="remember"
+                    checked={remember}
+                    onCheckedChange={(checked) => setRemember(checked === true)}
+                    className="size-[18px] rounded-[5px] border-[#CBD5E1]"
+                  />
+                  <Label
+                    htmlFor="remember"
+                    className="cursor-pointer text-[14px] font-medium text-[#334155]"
+                  >
+                    Se souvenir de moi
+                  </Label>
+                </div>
+
                 {/* Submit */}
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-[48px] rounded-[12px] bg-[#0F766E] hover:bg-[#115E59] active:bg-[#134E4A] text-white font-semibold text-[14px] transition-all duration-200 mt-2 shadow-[0_4px_12px_rgba(15,118,110,0.18)] hover:shadow-[0_6px_16px_rgba(15,118,110,0.22)] hover:-translate-y-[1px] focus-visible:ring-2 focus-visible:ring-[#0F766E]/25 focus-visible:ring-offset-2 disabled:opacity-50 disabled:hover:translate-y-0"
+                  className="relative h-[56px] w-full rounded-[14px] bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-[15px] font-semibold text-white shadow-[0_12px_26px_-8px_rgba(15,118,110,0.55)] transition-all duration-200 hover:shadow-[0_16px_32px_-8px_rgba(15,118,110,0.6)] hover:brightness-[1.04] disabled:opacity-60"
                 >
                   {loading ? (
                     <div className="flex items-center gap-2">
@@ -337,49 +355,50 @@ export default function LoginPage() {
                       <span>Connexion...</span>
                     </div>
                   ) : (
-                    <span className="flex items-center gap-2">
-                      Se connecter
-                      <ArrowRight className="h-4 w-4" />
-                    </span>
+                    <>
+                      <span>Se connecter</span>
+                      <span className="absolute right-2.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/20">
+                        <ArrowRight className="size-[18px]" />
+                      </span>
+                    </>
                   )}
                 </Button>
               </form>
             </>
           ) : (
             <>
-              {/* Heading */}
-              <div className="mb-7">
-                <h1 className="text-[28px] font-bold tracking-[-0.02em] text-[#0F172A] leading-tight">
-                  Mot de passe oublié ?
-                </h1>
-                <p className="mt-2 text-[14px] text-[#475569] leading-relaxed">
-                  Saisissez votre adresse email pour recevoir un nouveau mot de passe temporaire.
-                </p>
-              </div>
+              {/* Forgot-password heading */}
+              <h2 className="mt-6 text-center font-serif text-[28px] font-bold tracking-[-0.01em] text-[#1E293B]">
+                Mot de passe oublié ?
+              </h2>
+              <p className="mx-auto mt-2 max-w-[340px] text-center text-[14px] leading-relaxed text-[#64748B]">
+                Saisissez votre adresse email pour recevoir un nouveau mot de passe temporaire.
+              </p>
 
-              <form onSubmit={handleForgotPasswordSubmit} noValidate className="space-y-4">
-                {/* Email */}
-                <div className="space-y-1.5">
-                  <Label htmlFor="forgot-email" className="text-[13px] font-semibold text-[#334155]">
+              <form onSubmit={handleForgotPasswordSubmit} noValidate className="mt-7 space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="forgot-email" className="text-[14px] font-semibold text-[#334155]">
                     Adresse email
                   </Label>
-                  <Input
-                    key="forgot-email"
-                    id="forgot-email"
-                    type="email"
-                    placeholder="nom@ofppt.local"
-                    value={forgotEmail}
-                    onChange={(e) => setForgotEmail(e.target.value)}
-                    className="h-[46px] rounded-[12px] border border-white/70 bg-white/90 backdrop-blur-sm text-[14px] text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:ring-2 focus-visible:ring-[#0F766E]/25 focus-visible:border-[#0F766E]/55 focus-visible:bg-white transition-all duration-200 shadow-[0_1px_3px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.7)]"
-                    autoFocus
-                  />
+                  <div className="relative">
+                    <Mail className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#94A3B8]" />
+                    <Input
+                      key="forgot-email"
+                      id="forgot-email"
+                      type="email"
+                      placeholder="nom@ofppt.local"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      className="h-[52px] rounded-[14px] border border-[#E2E8F0] bg-white pl-12 pr-4 text-[15px] text-[#0F172A] shadow-none placeholder:text-[#94A3B8] transition-colors focus-visible:border-[#0F766E]/55 focus-visible:ring-2 focus-visible:ring-[#0F766E]/20"
+                      autoFocus
+                    />
+                  </div>
                 </div>
 
-                {/* Submit */}
                 <Button
                   type="submit"
                   disabled={forgotLoading}
-                  className="w-full h-[48px] rounded-[12px] bg-[#0F766E] hover:bg-[#115E59] active:bg-[#134E4A] text-white font-semibold text-[14px] transition-all duration-200 mt-2 shadow-[0_4px_12px_rgba(15,118,110,0.18)] hover:shadow-[0_6px_16px_rgba(15,118,110,0.22)] hover:-translate-y-[1px] focus-visible:ring-2 focus-visible:ring-[#0F766E]/25 focus-visible:ring-offset-2 disabled:opacity-50 disabled:hover:translate-y-0"
+                  className="relative h-[56px] w-full rounded-[14px] bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-[15px] font-semibold text-white shadow-[0_12px_26px_-8px_rgba(15,118,110,0.55)] transition-all duration-200 hover:shadow-[0_16px_32px_-8px_rgba(15,118,110,0.6)] hover:brightness-[1.04] disabled:opacity-60"
                 >
                   {forgotLoading ? (
                     <div className="flex items-center gap-2">
@@ -387,21 +406,22 @@ export default function LoginPage() {
                       <span>Envoi en cours...</span>
                     </div>
                   ) : (
-                    <span className="flex items-center gap-2">
-                      Envoyer le mot de passe
-                      <ArrowRight className="h-4 w-4" />
-                    </span>
+                    <>
+                      <span>Envoyer le mot de passe</span>
+                      <span className="absolute right-2.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/20">
+                        <ArrowRight className="size-[18px]" />
+                      </span>
+                    </>
                   )}
                 </Button>
 
-                {/* Back button */}
                 <button
                   type="button"
                   onClick={() => {
                     setShowForgotPassword(false);
                     setForgotEmail('');
                   }}
-                  className="w-full text-center text-[13px] font-semibold text-[#475569] hover:text-[#0F172A] transition-colors mt-2"
+                  className="w-full text-center text-[13px] font-semibold text-[#475569] transition-colors hover:text-[#0F172A]"
                 >
                   Retour à la connexion
                 </button>
@@ -410,20 +430,22 @@ export default function LoginPage() {
           )}
 
           {/* Trust badges */}
-          <div className="mt-6 grid grid-cols-2 gap-2.5">
-            <div className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-[12px] bg-white/85 backdrop-blur-sm border border-white/80 shadow-[0_2px_6px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.8)] hover:bg-white transition-colors">
-              <Shield className="h-3.5 w-3.5 text-[#0F766E] shrink-0" />
-              <p className="text-[11px] text-[#1F2937] font-semibold leading-tight">Chiffrement SSL</p>
+          <div className="mt-6 grid grid-cols-2 gap-3">
+            <div className="flex h-[50px] items-center justify-center gap-2 rounded-[14px] border border-[#E2E8F0] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+              <Shield className="h-[18px] w-[18px] shrink-0 text-[#0F766E]" />
+              <span className="text-[13px] font-medium text-[#374151]">Chiffrement SSL</span>
             </div>
-            <div className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-[12px] bg-white/85 backdrop-blur-sm border border-white/80 shadow-[0_2px_6px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.8)] hover:bg-white transition-colors">
-              <CheckCircle2 className="h-3.5 w-3.5 text-[#0F766E] shrink-0" />
-              <p className="text-[11px] text-[#1F2937] font-semibold leading-tight">Accès sécurisé</p>
+            <div className="flex h-[50px] items-center justify-center gap-2 rounded-[14px] border border-[#E2E8F0] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+              <CheckCircle2 className="h-[18px] w-[18px] shrink-0 text-[#0F766E]" />
+              <span className="text-[13px] font-medium text-[#374151]">Accès sécurisé</span>
             </div>
           </div>
 
           {/* Footer */}
-          <p className="mt-6 text-center text-[11px] font-medium text-[#475569]">
-            OFPPT – ISTA Tiznit © {new Date().getFullYear()}
+          <p className="mt-6 text-center text-[12px] text-[#94A3B8]">
+            © 2026 OFPPT – ISTA Tiznit
+            <span className="mx-2 text-[#CBD5E1]">|</span>
+            Version 1.0.0
           </p>
         </div>
       </div>
