@@ -126,7 +126,7 @@ export default function LoginPage() {
   ];
 
   return (
-    <div className="relative flex h-screen w-full overflow-hidden selection:bg-[#0F766E]/20">
+    <div className="relative flex h-[100dvh] w-full overflow-hidden selection:bg-[#0F766E]/20">
       {/* ═══ Campus background photo (spans full screen, untouched) ═══ */}
       <Image
         src="/ista-tiznit.png"
@@ -159,43 +159,44 @@ export default function LoginPage() {
       <div className="absolute inset-0 -z-10 lg:hidden bg-[#06141f]/45 pointer-events-none" />
 
       {/* ═══ LEFT: Marketing panel ═══ */}
-      <div className="relative z-10 hidden lg:flex lg:w-1/2 flex-col justify-center px-[7%] xl:px-[7.5%]">
+      <div className="relative z-10 hidden lg:flex lg:w-1/2 flex-col justify-center px-[5%] xl:px-[7.5%]">
         <div
           className={`max-w-[480px] transition-all duration-700 ease-out ${
             mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
           }`}
         >
+
           {/* Headline */}
-          <h1 className="font-serif font-bold text-white tracking-[-0.02em] leading-[1.1] text-[34px] xl:text-[38px]">
+          <h1 className="font-serif font-bold text-white tracking-[-0.02em] leading-[1.1] text-[28px] xl:text-[38px] lg:text-[32px]">
             Gestion intelligente
             <br />
             <span className="text-[#2DD4BF]">des absences</span>
           </h1>
 
           {/* Description */}
-          <p className="mt-4 max-w-[440px] text-[15px] xl:text-[16px] leading-[1.55] text-white/80">
+          <p className="mt-2 xl:mt-4 max-w-[440px] text-[14px] xl:text-[16px] leading-[1.45] text-white/80">
             Une plateforme moderne et centralisée pour automatiser le suivi des absences et
             simplifier la gestion de votre établissement.
           </p>
 
           {/* Feature cards */}
-          <div className="mt-7 space-y-3">
+          <div className="mt-4 xl:mt-7 space-y-2 xl:space-y-3">
             {features.map((feature, i) => (
               <div
                 key={feature.title}
-                className={`flex items-center gap-4 rounded-2xl border border-white/15 bg-white/[0.08] px-5 py-3 shadow-[0_8px_30px_rgba(2,8,20,0.18)] backdrop-blur-md transition-all duration-500 ease-out ${
+                className={`flex items-center gap-3 xl:gap-4 rounded-2xl border border-white/15 bg-white/[0.08] px-4 py-2 xl:px-5 xl:py-3 shadow-[0_8px_30px_rgba(2,8,20,0.18)] backdrop-blur-md transition-all duration-500 ease-out ${
                   mounted ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-6'
                 }`}
                 style={{ transitionDelay: mounted ? `${200 + i * 90}ms` : '0ms' }}
               >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#2DD4BF]/20 bg-[#2DD4BF]/[0.14]">
-                  <feature.icon className="h-[21px] w-[21px] text-[#2DD4BF]" />
+                <div className="flex h-9 w-9 xl:h-11 xl:w-11 shrink-0 items-center justify-center rounded-2xl border border-[#2DD4BF]/20 bg-[#2DD4BF]/[0.14]">
+                  <feature.icon className="h-[18px] w-[18px] xl:h-[21px] xl:w-[21px] text-[#2DD4BF]" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[15px] font-semibold leading-tight text-white">
+                  <p className="text-[13px] xl:text-[15px] font-semibold leading-tight text-white">
                     {feature.title}
                   </p>
-                  <p className="mt-0.5 text-[13px] leading-snug text-white/70">{feature.desc}</p>
+                  <p className="mt-0.5 text-[11px] xl:text-[13px] leading-snug text-white/70">{feature.desc}</p>
                 </div>
               </div>
             ))}
@@ -203,18 +204,18 @@ export default function LoginPage() {
 
           {/* Statistics panel */}
           <div
-            className={`mt-7 flex items-center rounded-2xl border border-white/12 bg-[#0a1822]/55 px-5 py-3 shadow-[0_12px_34px_rgba(2,8,20,0.28)] backdrop-blur-md transition-all duration-500 ease-out ${
+            className={`mt-4 xl:mt-7 flex items-center rounded-2xl border border-white/12 bg-[#0a1822]/55 px-4 py-2 xl:px-5 xl:py-3 shadow-[0_12px_34px_rgba(2,8,20,0.28)] backdrop-blur-md transition-all duration-500 ease-out ${
               mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
             style={{ transitionDelay: mounted ? '520ms' : '0ms' }}
           >
             {stats.map((stat) => (
               <div key={stat.value} className="flex flex-1 items-center gap-2.5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2DD4BF]/[0.12]">
-                  <stat.icon className="h-[18px] w-[18px] text-[#2DD4BF]" />
+                <div className="flex h-8 w-8 xl:h-10 xl:w-10 shrink-0 items-center justify-center rounded-xl bg-[#2DD4BF]/[0.12]">
+                  <stat.icon className="h-[16px] w-[16px] xl:h-[18px] xl:w-[18px] text-[#2DD4BF]" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[22px] font-bold leading-none text-white">{stat.value}</p>
+                  <p className="text-[18px] xl:text-[22px] font-bold leading-none text-white">{stat.value}</p>
                   <p className="mt-1 whitespace-nowrap text-[11px] leading-tight text-white/60">
                     {stat.label}
                   </p>
@@ -226,17 +227,17 @@ export default function LoginPage() {
       </div>
 
       {/* ═══ RIGHT: Auth card ═══ */}
-      <div className="relative z-10 flex-1 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center px-6 py-4">
+      <div className="relative z-10 flex-1 flex items-center justify-center">
+        <div className="flex w-full items-center justify-center px-4 sm:px-6">
           <div
-            className={`w-full max-w-[560px] rounded-[30px] bg-white px-9 py-7 shadow-[0_30px_80px_-20px_rgba(8,20,35,0.45)] sm:px-12 transition-all duration-700 ease-out ${
+            className={`login-card w-full max-w-[460px] lg:max-w-[500px] xl:max-w-[560px] rounded-[24px] sm:rounded-[30px] bg-white shadow-[0_30px_80px_-20px_rgba(8,20,35,0.45)] transition-all duration-700 ease-out ${
               mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
-            style={{ transitionDelay: '200ms' }}
+            style={{ transitionDelay: '200ms', padding: 'clamp(1.5rem, 4.5vh, 1.75rem) clamp(1.25rem, 3vw, 3rem)' }}
           >
           {/* Logo */}
           <div className="flex justify-center">
-            <div className="relative h-20 w-20 overflow-hidden rounded-full bg-white shadow-[0_8px_24px_rgba(15,23,42,0.14)] ring-1 ring-slate-100">
+            <div className="relative overflow-hidden rounded-full bg-white shadow-[0_8px_24px_rgba(15,23,42,0.14)] ring-1 ring-slate-100" style={{ width: 'clamp(3.75rem, 10vh, 5rem)', height: 'clamp(3.75rem, 10vh, 5rem)' }}>
               <Image
                 src="/ofppt-logo.png"
                 alt="Logo OFPPT"
@@ -251,16 +252,16 @@ export default function LoginPage() {
           {!showForgotPassword ? (
             <>
               {/* Heading */}
-              <h2 className="mt-5 text-center font-serif text-[28px] font-bold leading-[1.1] tracking-[-0.01em] text-[#1E293B]">
+              <h2 className="text-center font-serif font-bold leading-[1.1] tracking-[-0.01em] text-[#1E293B]" style={{ fontSize: 'clamp(1.375rem, 4vh, 1.75rem)', marginTop: 'clamp(0.75rem, 2.5vh, 1.25rem)' }}>
                 Bon retour !
               </h2>
-              <p className="mt-1.5 text-center text-[14px] text-[#64748B]">
+              <p className="mt-1 text-center text-[14px] text-[#64748B]">
                 Connectez-vous à votre espace de gestion
               </p>
 
-              <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-6 space-y-4">
+              <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-3" style={{ marginTop: 'clamp(1rem, 3vh, 1.5rem)' }}>
                 {/* Email */}
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="email" className="text-[13px] font-semibold text-[#334155]">
                     Adresse email
                   </Label>
@@ -272,7 +273,8 @@ export default function LoginPage() {
                       type="email"
                       placeholder="nom@ofppt.local"
                       {...register('email')}
-                      className="h-[48px] rounded-[14px] border border-[#E2E8F0] bg-white pl-12 pr-4 text-[14px] text-[#0F172A] shadow-none placeholder:text-[#94A3B8] transition-colors focus-visible:border-[#0F766E]/55 focus-visible:ring-2 focus-visible:ring-[#0F766E]/20"
+                      className="rounded-[12px] sm:rounded-[14px] border border-[#E2E8F0] bg-white pl-11 sm:pl-12 pr-4 text-[14px] text-[#0F172A] shadow-none placeholder:text-[#94A3B8] transition-colors focus-visible:border-[#0F766E]/55 focus-visible:ring-2 focus-visible:ring-[#0F766E]/20"
+                      style={{ height: 'clamp(2.625rem, 6.5vh, 3rem)' }}
                       autoFocus
                     />
                   </div>
@@ -285,7 +287,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Password */}
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password" className="text-[13px] font-semibold text-[#334155]">
                       Mot de passe
@@ -306,7 +308,8 @@ export default function LoginPage() {
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       {...register('password')}
-                      className="h-[48px] rounded-[14px] border border-[#E2E8F0] bg-white pl-12 pr-12 text-[14px] text-[#0F172A] shadow-none placeholder:text-[#94A3B8] transition-colors focus-visible:border-[#0F766E]/55 focus-visible:ring-2 focus-visible:ring-[#0F766E]/20"
+                      className="rounded-[12px] sm:rounded-[14px] border border-[#E2E8F0] bg-white pl-11 sm:pl-12 pr-12 text-[14px] text-[#0F172A] shadow-none placeholder:text-[#94A3B8] transition-colors focus-visible:border-[#0F766E]/55 focus-visible:ring-2 focus-visible:ring-[#0F766E]/20"
+                      style={{ height: 'clamp(2.625rem, 6.5vh, 3rem)' }}
                     />
                     <button
                       type="button"
@@ -348,7 +351,8 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="relative h-[50px] w-full rounded-[14px] bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-[15px] font-semibold text-white shadow-[0_12px_26px_-8px_rgba(15,118,110,0.55)] transition-all duration-200 hover:shadow-[0_16px_32px_-8px_rgba(15,118,110,0.6)] hover:brightness-[1.04] disabled:opacity-60"
+                  className="relative w-full border-0 bg-clip-border rounded-[14px] bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-[15px] font-semibold text-white shadow-[0_12px_26px_-8px_rgba(15,118,110,0.55)] transition-all duration-200 hover:shadow-[0_16px_32px_-8px_rgba(15,118,110,0.6)] hover:brightness-[1.04] disabled:opacity-60"
+                  style={{ height: 'clamp(2.75rem, 7vh, 3.125rem)' }}
                 >
                   {loading ? (
                     <div className="flex items-center gap-2">
@@ -358,7 +362,7 @@ export default function LoginPage() {
                   ) : (
                     <>
                       <span>Se connecter</span>
-                      <span className="absolute right-2.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/20">
+                      <span className="absolute right-2.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/15">
                         <ArrowRight className="size-[18px]" />
                       </span>
                     </>
@@ -369,13 +373,13 @@ export default function LoginPage() {
           ) : (
             <>
               {/* Forgot-password heading */}
-              <h2 className="mt-5 text-center font-serif text-[24px] font-bold leading-[1.1] tracking-[-0.01em] text-[#1E293B]">
+              <h2 className="text-center font-serif font-bold leading-[1.1] tracking-[-0.01em] text-[#1E293B]" style={{ fontSize: 'clamp(1.25rem, 3.5vh, 1.5rem)', marginTop: 'clamp(0.5rem, 1.5vh, 1.25rem)' }}>
                 Mot de passe oublié ?
               </h2>
               <p className="mx-auto mt-1.5 max-w-[340px] text-center text-[14px] leading-relaxed text-[#64748B]">
                 Saisissez votre adresse email pour recevoir un nouveau mot de passe temporaire.
               </p>
-              <form onSubmit={handleForgotPasswordSubmit} noValidate className="mt-6 space-y-4">
+              <form onSubmit={handleForgotPasswordSubmit} noValidate className="space-y-3" style={{ marginTop: 'clamp(0.75rem, 2vh, 1.5rem)' }}>
                 <div className="space-y-2">
                   <Label htmlFor="forgot-email" className="text-[13px] font-semibold text-[#334155]">
                     Adresse email
@@ -389,7 +393,8 @@ export default function LoginPage() {
                       placeholder="nom@ofppt.local"
                       value={forgotEmail}
                       onChange={(e) => setForgotEmail(e.target.value)}
-                      className="h-[48px] rounded-[14px] border border-[#E2E8F0] bg-white pl-12 pr-4 text-[14px] text-[#0F172A] shadow-none placeholder:text-[#94A3B8] transition-colors focus-visible:border-[#0F766E]/55 focus-visible:ring-2 focus-visible:ring-[#0F766E]/20"
+                      className="rounded-[12px] sm:rounded-[14px] border border-[#E2E8F0] bg-white pl-11 sm:pl-12 pr-4 text-[14px] text-[#0F172A] shadow-none placeholder:text-[#94A3B8] transition-colors focus-visible:border-[#0F766E]/55 focus-visible:ring-2 focus-visible:ring-[#0F766E]/20"
+                      style={{ height: 'clamp(2.25rem, 5.5vh, 3rem)' }}
                       autoFocus
                     />
                   </div>
@@ -397,7 +402,8 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={forgotLoading}
-                  className="relative h-[50px] w-full rounded-[14px] bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-[15px] font-semibold text-white shadow-[0_12px_26px_-8px_rgba(15,118,110,0.55)] transition-all duration-200 hover:shadow-[0_16px_32px_-8px_rgba(15,118,110,0.6)] hover:brightness-[1.04] disabled:opacity-60"
+                  className="relative w-full rounded-[12px] sm:rounded-[14px] bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-[15px] font-semibold text-white shadow-[0_12px_26px_-8px_rgba(15,118,110,0.55)] transition-all duration-200 hover:shadow-[0_16px_32px_-8px_rgba(15,118,110,0.6)] hover:brightness-[1.04] disabled:opacity-60"
+                  style={{ height: 'clamp(2.5rem, 6vh, 3.125rem)' }}
                 >
                   {forgotLoading ? (
                     <div className="flex items-center gap-2">
@@ -429,19 +435,19 @@ export default function LoginPage() {
           )}
 
           {/* Trust badges */}
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            <div className="flex h-[46px] items-center justify-center gap-2 rounded-[14px] border border-[#E2E8F0] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3" style={{ marginTop: 'clamp(0.75rem, 2.5vh, 1.25rem)' }}>
+            <div className="flex items-center justify-center gap-2 rounded-[14px] border border-[#E2E8F0] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]" style={{ height: 'clamp(2.375rem, 6vh, 2.875rem)' }}>
               <Shield className="h-[18px] w-[18px] shrink-0 text-[#0F766E]" />
               <span className="text-[12px] font-medium text-[#374151]">Chiffrement SSL</span>
             </div>
-            <div className="flex h-[46px] items-center justify-center gap-2 rounded-[14px] border border-[#E2E8F0] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+            <div className="flex items-center justify-center gap-2 rounded-[14px] border border-[#E2E8F0] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]" style={{ height: 'clamp(2.375rem, 6vh, 2.875rem)' }}>
               <CheckCircle2 className="h-[18px] w-[18px] shrink-0 text-[#0F766E]" />
               <span className="text-[12px] font-medium text-[#374151]">Accès sécurisé</span>
             </div>
           </div>
 
           {/* Footer */}
-          <p className="mt-5 text-center text-[11px] text-[#94A3B8]">
+          <p className="text-center text-[11px] text-[#94A3B8]" style={{ marginTop: 'clamp(0.75rem, 2.5vh, 1.25rem)' }}>
             © 2026 OFPPT – ISTA Tiznit
             <span className="mx-2 text-[#CBD5E1]">|</span>
             Version 1.0.0

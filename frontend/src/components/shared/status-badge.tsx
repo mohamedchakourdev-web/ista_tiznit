@@ -74,7 +74,7 @@ export function AutorisationStatusBadge({ statut }: { statut: string }) {
 }
 
 export function ReadStatusBadge({ isRead }: { isRead: boolean }) {
-  return <StatusBadge variant={isRead ? 'neutral' : 'info'}>{isRead ? 'Lu' : 'Non lu'}</StatusBadge>;
+  return <StatusBadge variant={isRead ? 'success' : 'danger'}>{isRead ? 'Lu' : 'Non lu'}</StatusBadge>;
 }
 
 export function PeriodBadge({ period }: { period: string }) {
