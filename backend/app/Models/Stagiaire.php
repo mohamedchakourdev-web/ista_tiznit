@@ -45,6 +45,25 @@ class Stagiaire extends Model
     ];
 
     /**
+     * Cascade soft deletes to the data owned by the trainee.
+     *
+     * The related absences and autorisations are soft deleted alongside the
+     * stagiaire so no orphan records remain. A force delete is left to the
+     * database foreign keys.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (Stagiaire $stagiaire): void {
+            if ($stagiaire->isForceDeleting()) {
+                return;
+            }
+
+            $stagiaire->absences()->get()->each->delete();
+            $stagiaire->autorisations()->get()->each->delete();
+        });
+    }
+
+    /**
      * Get the attribute casts for the model.
      *
      * @return array<string, string>
