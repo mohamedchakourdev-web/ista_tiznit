@@ -168,7 +168,8 @@ export default function FormateurGroupesPage() {
                   <TableRow className="border-b border-border/40 hover:bg-transparent">
                     <TableHead className="w-12 px-4">
                       <Checkbox
-                        checked={isAllSelected ? true : isSomeSelected ? 'indeterminate' : false}
+                        checked={isAllSelected}
+                        indeterminate={isSomeSelected}
                         onCheckedChange={toggleAll}
                         className="size-[18px] rounded-[5px] border-[#CBD5E1]"
                       />
