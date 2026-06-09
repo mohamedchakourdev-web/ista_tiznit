@@ -12,6 +12,7 @@ use App\Jobs\ImportStagiairesJob;
 use App\Models\Stagiaire;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class StagiaireController extends Controller
 {
@@ -138,11 +139,14 @@ class StagiaireController extends Controller
 
         $stagiaire = Stagiaire::findOrFail($stagiaireId);
 
-        // Enregistrer qui supprime puis soft-delete
-        $stagiaire->deleted_by = $user->id;
-        $stagiaire->save();
+        // Enregistrer qui supprime puis soft-delete (avec cascade sur les
+        // absences et autorisations) dans une seule transaction.
+        DB::transaction(static function () use ($stagiaire, $user): void {
+            $stagiaire->deleted_by = $user->id;
+            $stagiaire->save();
 
-        $stagiaire->delete();
+            $stagiaire->delete();
+        });
 
         return response()->json([
             'success' => true,

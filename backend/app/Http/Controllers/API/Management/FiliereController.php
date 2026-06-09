@@ -11,6 +11,7 @@ use App\Http\Resources\FiliereResource;
 use App\Models\Filiere;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class FiliereController extends Controller
 {
@@ -105,7 +106,12 @@ class FiliereController extends Controller
         $user = auth()->user();
 
         $filiere = Filiere::findOrFail($filiereId);
-        $filiere->delete();
+
+        // Soft delete the filiere and cascade to its groupes, stagiaires,
+        // absences and autorisations within a single transaction.
+        DB::transaction(static function () use ($filiere): void {
+            $filiere->delete();
+        });
 
         return response()->json([
             'success' => true,

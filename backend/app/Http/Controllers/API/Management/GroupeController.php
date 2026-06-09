@@ -199,7 +199,12 @@ class GroupeController extends Controller
         $user = auth()->user();
 
         $groupe = Groupe::findOrFail($groupeId);
-        $groupe->delete();
+
+        // Soft delete the groupe and cascade to its stagiaires, absences and
+        // autorisations within a single transaction.
+        DB::transaction(static function () use ($groupe): void {
+            $groupe->delete();
+        });
 
         return response()->json([
             'success' => true,

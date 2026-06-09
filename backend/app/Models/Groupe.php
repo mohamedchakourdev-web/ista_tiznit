@@ -35,6 +35,24 @@ class Groupe extends Model
     ];
 
     /**
+     * Cascade soft deletes to the learners of the group.
+     *
+     * Deleting the stagiaires lets their own deleting event cascade to the
+     * related absences and autorisations. A force delete is left to the
+     * database foreign keys.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (Groupe $groupe): void {
+            if ($groupe->isForceDeleting()) {
+                return;
+            }
+
+            $groupe->stagiaires()->get()->each->delete();
+        });
+    }
+
+    /**
      * Get the parent filiere.
      */
     public function filiere(): BelongsTo
