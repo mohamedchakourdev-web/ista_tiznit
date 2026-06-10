@@ -147,11 +147,10 @@ export default function StagiairesPage() {
   const importMutation = useMutation({
     mutationFn: (file: File) => stagiaireService.import(file, setUploadProgress),
     onMutate: () => setUploadProgress(0),
-    onSuccess: (response) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stagiaires'] });
-      toast.success(response.message || 'Import en cours...');
-      setImportFile(null);
-      setUploadProgress(100);
+      toast.success('Import terminé avec succès');
+      closeImport();
     },
     onError: (error) => toast.error(getApiErrorMessage(error, 'Erreur lors de l import.')),
   });
@@ -423,7 +422,7 @@ export default function StagiairesPage() {
                 className="h-10 rounded-lg border-border/50 bg-muted/30 text-[14px] file:mr-4 file:rounded-md file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-primary"
               />
               <p className="text-[12px] leading-relaxed text-muted-foreground">
-                Le traitement est lance en arriere-plan par Laravel. Le statut affiche reste donc &quot;Import en cours...&quot;.
+                Le fichier est traite par Laravel. La liste des stagiaires se rafraichit automatiquement une fois l&apos;import termine.
               </p>
             </div>
 
