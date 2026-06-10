@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { Bell, CheckCheck, LogOut, UserRound } from 'lucide-react';
@@ -55,6 +55,50 @@ export function Navbar() {
   });
 
   const unreadCount = unread?.meta?.total ?? unread?.data?.length ?? 0;
+
+  // Sound notification tracking refs
+  const isFirstLoad = useRef(true);
+  const prevUnreadCount = useRef<number | null>(null);
+  const seenNotificationIds = useRef<Set<number>>(new Set());
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize Audio instance once on mount (client-side only)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      audioRef.current = new Audio('/sounds/ding.wav');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!canViewNotifications || !unread) return;
+
+    const currentUnreadCount = unread.meta?.total ?? unread.data?.length ?? 0;
+    const currentUnreadItems = unread.data ?? [];
+
+    // Skip playing sound on page mount or refresh
+    if (isFirstLoad.current) {
+      prevUnreadCount.current = currentUnreadCount;
+      currentUnreadItems.forEach((n) => seenNotificationIds.current.add(n.id));
+      isFirstLoad.current = false;
+      return;
+    }
+
+    // Detect new unread notifications not seen in this session
+    const newUnreadItems = currentUnreadItems.filter(
+      (n) => !seenNotificationIds.current.has(n.id)
+    );
+
+    // Play sound ONLY when count increases and there is at least one new unread notification
+    if (currentUnreadCount > (prevUnreadCount.current ?? 0) && newUnreadItems.length > 0) {
+      audioRef.current?.play().catch((err) => {
+        console.warn('Autoplay of notification sound was blocked:', err);
+      });
+    }
+
+    // Sync session tracking refs
+    currentUnreadItems.forEach((n) => seenNotificationIds.current.add(n.id));
+    prevUnreadCount.current = currentUnreadCount;
+  }, [unread, canViewNotifications]);
 
   const markAsRead = useMutation({
     mutationFn: (id: number) => notificationService.markAsRead(id),
