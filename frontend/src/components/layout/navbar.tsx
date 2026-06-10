@@ -83,13 +83,18 @@ export function Navbar() {
       return;
     }
 
-    // Detect new unread notifications not seen in this session
-    const newUnreadItems = currentUnreadItems.filter(
+    // Filter only unread notifications of type 'autorisation'
+    const currentUnreadAutorisations = currentUnreadItems.filter(
+      (n) => n.type === 'autorisation'
+    );
+
+    // Detect new unread autorisations not seen in this session
+    const newUnreadAutorisations = currentUnreadAutorisations.filter(
       (n) => !seenNotificationIds.current.has(n.id)
     );
 
-    // Play sound ONLY when count increases and there is at least one new unread notification
-    if (currentUnreadCount > (prevUnreadCount.current ?? 0) && newUnreadItems.length > 0) {
+    // Play sound ONLY when there is at least one brand new unread autorisation
+    if (newUnreadAutorisations.length > 0) {
       audioRef.current?.play().catch((err) => {
         console.warn('Autoplay of notification sound was blocked:', err);
       });
