@@ -8,11 +8,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Management\StoreStagiaireRequest;
 use App\Http\Requests\Management\UpdateStagiaireRequest;
 use App\Http\Resources\StagiaireResource;
-use App\Jobs\ImportStagiairesJob;
+use App\Imports\StagiairesImport;
 use App\Models\Stagiaire;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class StagiaireController extends Controller
 {
@@ -98,14 +103,59 @@ class StagiaireController extends Controller
 
         $importDisk = (string) config('ofppt.import_disk', 'local');
         $path = $request->file('file')->store('imports', $importDisk);
+        $absolutePath = Storage::disk($importDisk)->path($path);
+        $import = new StagiairesImport;
 
-        ImportStagiairesJob::dispatch($path);
+        try {
+            Excel::import($import, $absolutePath);
+        } catch (Throwable $exception) {
+            Log::error('Import stagiaires - echec du traitement.', [
+                'file' => $path,
+                'disk' => $importDisk,
+                'message' => $exception->getMessage(),
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Import en cours...',
-            'data' => (object) [],
-        ]);
+            $import->addGlobalError('Le fichier n\'a pas pu etre traite. Verifiez son format et son contenu.');
+
+            return $this->importResponse(
+                $import,
+                'Import echoue',
+                false,
+                Response::HTTP_UNPROCESSABLE_ENTITY,
+            );
+        } finally {
+            Storage::disk($importDisk)->delete($path);
+        }
+
+        $report = $import->report();
+
+        if ($report['imported'] > 0 && $report['failed'] === 0) {
+            return $this->importResponse(
+                $import,
+                'Import termine avec succes',
+                true,
+            );
+        }
+
+        if ($report['imported'] > 0) {
+            return $this->importResponse(
+                $import,
+                'Import termine avec avertissements',
+                true,
+                Response::HTTP_OK,
+            );
+        }
+
+        if ($report['failed'] === 0) {
+            $import->addGlobalError('Aucune ligne valide a importer n\'a ete trouvee dans le fichier.');
+        }
+
+        return $this->importResponse(
+            $import,
+            'Import echoue',
+            false,
+            Response::HTTP_UNPROCESSABLE_ENTITY,
+        );
     }
 
     /**
@@ -152,5 +202,29 @@ class StagiaireController extends Controller
             'success' => true,
             'message' => 'Stagiaire supprimé',
         ]);
+    }
+
+    private function importResponse(
+        StagiairesImport $import,
+        string $message,
+        bool $success,
+        int $status = Response::HTTP_OK,
+    ): JsonResponse {
+        $report = $import->report();
+
+        $payload = [
+            'success' => $success,
+            'message' => $message,
+            'imported' => $report['imported'],
+            'failed' => $report['failed'],
+            'errors' => $report['errors'],
+            'data' => [
+                'imported' => $report['imported'],
+                'failed' => $report['failed'],
+                'errors' => $report['errors'],
+            ],
+        ];
+
+        return response()->json($payload, $status);
     }
 }

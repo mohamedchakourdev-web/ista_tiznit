@@ -4,6 +4,7 @@ import type {
   ApiResponse,
   QueryParams,
   Stagiaire,
+  StagiaireImportApiResponse,
   StoreStagiairePayload,
   UpdateStagiairePayload,
 } from '@/types';
@@ -32,7 +33,7 @@ export const stagiaireService = {
     formData.append('file', file);
 
     return apiClient
-      .post<ApiResponse<never>>('/gestionnaire/stagiaires/import', formData, {
+      .post<StagiaireImportApiResponse>('/gestionnaire/stagiaires/import', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (event) => {
           if (!event.total || !onUploadProgress) return;

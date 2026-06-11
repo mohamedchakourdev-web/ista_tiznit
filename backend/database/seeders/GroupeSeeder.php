@@ -20,27 +20,27 @@ class GroupeSeeder extends Seeder
      */
     public function run(): void
     {
-        $anneeFormation = sprintf('%s-%s', now()->year, now()->addYear()->year);
+        $anneeFormation = (string) now()->year;
         $definitions = [
             'DD-OWFS' => [
-                ['nom' => 'DD OWFS 1A', 'code' => 'DDOWFS-1A', 'niveau' => '1ere annee', 'capacite' => 30],
-                ['nom' => 'DD OWFS 2A', 'code' => 'DDOWFS-2A', 'niveau' => '2eme annee', 'capacite' => 28],
+                ['nom' => 'DD OWFS 1A', 'code' => 'DDOWFS-1A', 'niveau' => '1ère année', 'capacite' => 30],
+                ['nom' => 'DD OWFS 2A', 'code' => 'DDOWFS-2A', 'niveau' => '2ème année', 'capacite' => 28],
             ],
             'DD-OAM' => [
-                ['nom' => 'DD OAM 1A', 'code' => 'DDOAM-1A', 'niveau' => '1ere annee', 'capacite' => 26],
-                ['nom' => 'DD OAM 2A', 'code' => 'DDOAM-2A', 'niveau' => '2eme annee', 'capacite' => 24],
+                ['nom' => 'DD OAM 1A', 'code' => 'DDOAM-1A', 'niveau' => '1ère année', 'capacite' => 26],
+                ['nom' => 'DD OAM 2A', 'code' => 'DDOAM-2A', 'niveau' => '2ème année', 'capacite' => 24],
             ],
             'ID' => [
-                ['nom' => 'Infrastructure 1A', 'code' => 'ID-1A', 'niveau' => '1ere annee', 'capacite' => 32],
-                ['nom' => 'Infrastructure 2A', 'code' => 'ID-2A', 'niveau' => '2eme annee', 'capacite' => 30],
+                ['nom' => 'Infrastructure 1A', 'code' => 'ID-1A', 'niveau' => '1ère année', 'capacite' => 32],
+                ['nom' => 'Infrastructure 2A', 'code' => 'ID-2A', 'niveau' => '2ème année', 'capacite' => 30],
             ],
             'GE' => [
-                ['nom' => 'Gestion 1A', 'code' => 'GE-1A', 'niveau' => '1ere annee', 'capacite' => 30],
-                ['nom' => 'Gestion 2A', 'code' => 'GE-2A', 'niveau' => '2eme annee', 'capacite' => 30],
+                ['nom' => 'Gestion 1A', 'code' => 'GE-1A', 'niveau' => '1ère année', 'capacite' => 30],
+                ['nom' => 'Gestion 2A', 'code' => 'GE-2A', 'niveau' => '2ème année', 'capacite' => 30],
             ],
             'ESA' => [
-                ['nom' => 'ESA 1A', 'code' => 'ESA-1A', 'niveau' => '1ere annee', 'capacite' => 24],
-                ['nom' => 'ESA 2A', 'code' => 'ESA-2A', 'niveau' => '2eme annee', 'capacite' => 24],
+                ['nom' => 'ESA 1A', 'code' => 'ESA-1A', 'niveau' => '1ère année', 'capacite' => 24],
+                ['nom' => 'ESA 2A', 'code' => 'ESA-2A', 'niveau' => '2ème année', 'capacite' => 24],
             ],
         ];
 

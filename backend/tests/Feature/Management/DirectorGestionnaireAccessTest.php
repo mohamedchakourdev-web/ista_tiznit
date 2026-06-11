@@ -98,8 +98,8 @@ class DirectorGestionnaireAccessTest extends TestCase
             'filiere_id' => $filiereId,
             'nom' => "Groupe {$prefix}",
             'code' => "GRP-{$prefix}",
-            'annee_formation' => '2026-2027',
-            'niveau' => '1ere annee',
+            'annee_formation' => '2026',
+            'niveau' => '1ère année',
             'capacite' => 30,
         ]);
 

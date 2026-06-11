@@ -49,7 +49,7 @@ class GroupeFormateurAssignmentTest extends TestCase
             'filiere_id' => $filiere->id,
             'nom' => 'DD OWFS 2A',
             'code' => 'DD-OWFS-2A',
-            'annee_formation' => '2025/2026',
+            'annee_formation' => '2025',
             'niveau' => '2A',
             'capacite' => 30,
             'formateur_ids' => [$ahmed->id, $youssef->id],
@@ -59,6 +59,7 @@ class GroupeFormateurAssignmentTest extends TestCase
             ->assertCreated()
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.nom', 'DD OWFS 2A')
+            ->assertJsonPath('data.niveau', '2ème année')
             ->assertJsonCount(2, 'data.formateurs')
             ->assertJsonFragment(['id' => $ahmed->id, 'nom' => 'Ahmed'])
             ->assertJsonFragment(['id' => $youssef->id, 'nom' => 'Youssef']);
@@ -124,6 +125,34 @@ class GroupeFormateurAssignmentTest extends TestCase
                 'groupe_id' => $groupeId,
                 'stagiaire_id' => $stagiaire->id,
             ]);
+    }
+
+    public function test_groupe_validation_rejects_invalid_niveau_and_non_numeric_annee_formation(): void
+    {
+        $this->seed(RolePermissionSeeder::class);
+
+        $gestionnaire = User::factory()->gestionnaire()->create([
+            'email' => 'gestionnaire.groupes.validation@example.test',
+        ]);
+        $gestionnaire->assignRole('gestionnaire');
+
+        $filiere = Filiere::factory()->create([
+            'nom' => 'Infrastructure Digitale',
+            'code' => 'ID-VAL',
+        ]);
+
+        Sanctum::actingAs($gestionnaire);
+
+        $this->postJson('/api/gestionnaire/groupes', [
+            'filiere_id' => $filiere->id,
+            'nom' => 'ID Validation',
+            'code' => 'ID-VALIDATION',
+            'annee_formation' => 'abc',
+            'niveau' => 'niveau libre',
+            'capacite' => 30,
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['annee_formation', 'niveau']);
     }
 
     private function createFormateur(string $nom, string $prenom, string $email): User

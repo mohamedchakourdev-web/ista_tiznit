@@ -1529,7 +1529,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"filiere_id\": 1,\n  \"nom\": \"Groupe QA {{$timestamp}}\",\n  \"code\": \"QA-GRP-{{$timestamp}}\",\n  \"annee_formation\": \"2026-2027\",\n  \"niveau\": \"1ere annee\",\n  \"capacite\": 24,\n  \"formateur_ids\": [\n    3\n  ]\n}",
+                  "raw": "{\n  \"filiere_id\": 1,\n  \"nom\": \"Groupe QA {{$timestamp}}\",\n  \"code\": \"QA-GRP-{{$timestamp}}\",\n  \"annee_formation\": \"2026\",\n  \"niveau\": \"1ère année\",\n  \"capacite\": 24,\n  \"formateur_ids\": [\n    3\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
