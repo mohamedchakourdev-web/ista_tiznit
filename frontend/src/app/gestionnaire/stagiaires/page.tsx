@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { GraduationCap, MoreHorizontal, Pencil, Plus, Upload, Trash2 } from 'lucide-react';
+import { GraduationCap, Pencil, Plus, Upload, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   diplomeService,
@@ -13,7 +13,8 @@ import {
   groupeService,
   stagiaireService,
 } from '@/services/api';
-import type { Stagiaire, StoreStagiairePayload } from '@/types';
+import type { ImportErrorDetail, Stagiaire, StagiaireImportResult, StoreStagiairePayload } from '@/types';
+import { cn } from '@/lib/utils';
 import { PageHeader } from '@/components/shared/page-header';
 import { SearchInput } from '@/components/shared/search-input';
 import { Pagination } from '@/components/shared/pagination';
@@ -51,6 +52,11 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+type ImportFeedback = StagiaireImportResult & {
+  success: boolean;
+  message: string;
+};
+
 const defaultValues: FormValues = {
   groupe_id: '',
   diplome_type_id: '',
@@ -83,6 +89,76 @@ function toPayload(values: FormValues): StoreStagiairePayload {
   };
 }
 
+function normalizeImportErrors(errors: unknown): ImportErrorDetail[] {
+  if (!Array.isArray(errors)) return [];
+
+  return errors
+    .map((error): ImportErrorDetail | null => {
+      if (!error || typeof error !== 'object') return null;
+
+      const item = error as { row?: unknown; field?: unknown; message?: unknown };
+      const row = typeof item.row === 'number' ? item.row : null;
+      const field = typeof item.field === 'string' ? item.field : null;
+      const message = typeof item.message === 'string' && item.message.trim() !== ''
+        ? item.message
+        : 'Erreur inconnue.';
+
+      return { row, field, message };
+    })
+    .filter((error): error is ImportErrorDetail => Boolean(error));
+}
+
+function normalizeImportFeedback(payload: unknown): ImportFeedback | null {
+  if (!payload || typeof payload !== 'object') return null;
+
+  const candidate = payload as {
+    success?: unknown;
+    message?: unknown;
+    imported?: unknown;
+    failed?: unknown;
+    errors?: unknown;
+    data?: {
+      imported?: unknown;
+      failed?: unknown;
+      errors?: unknown;
+    };
+  };
+
+  const imported = typeof candidate.imported === 'number'
+    ? candidate.imported
+    : typeof candidate.data?.imported === 'number'
+      ? candidate.data.imported
+      : null;
+  const failed = typeof candidate.failed === 'number'
+    ? candidate.failed
+    : typeof candidate.data?.failed === 'number'
+      ? candidate.data.failed
+      : null;
+
+  if (imported === null || failed === null) return null;
+
+  return {
+    success: candidate.success === true,
+    message: typeof candidate.message === 'string' ? candidate.message : 'Import échoué',
+    imported,
+    failed,
+    errors: normalizeImportErrors(candidate.errors ?? candidate.data?.errors),
+  };
+}
+
+function getImportFeedbackFromError(error: unknown): ImportFeedback | null {
+  const responseData = (error as { response?: { data?: unknown } })?.response?.data;
+
+  return normalizeImportFeedback(responseData);
+}
+
+function getImportTitle(feedback: ImportFeedback): string {
+  if (!feedback.success && feedback.imported === 0) return 'Import échoué';
+  if (feedback.failed > 0) return 'Import terminé avec avertissements';
+
+  return 'Import terminé avec succès';
+}
+
 export default function StagiairesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
@@ -94,6 +170,7 @@ export default function StagiairesPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [importFeedback, setImportFeedback] = useState<ImportFeedback | null>(null);
 
   const { register, handleSubmit, reset, setValue, control, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -146,13 +223,58 @@ export default function StagiairesPage() {
 
   const importMutation = useMutation({
     mutationFn: (file: File) => stagiaireService.import(file, setUploadProgress),
-    onMutate: () => setUploadProgress(0),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stagiaires'] });
-      toast.success('Import terminé avec succès');
-      closeImport();
+    onMutate: () => {
+      setUploadProgress(0);
+      setImportFeedback(null);
     },
-    onError: (error) => toast.error(getApiErrorMessage(error, 'Erreur lors de l import.')),
+    onSuccess: (response) => {
+      const feedback = normalizeImportFeedback(response);
+
+      if (!feedback) {
+        queryClient.invalidateQueries({ queryKey: ['stagiaires'] });
+        toast.success('Import terminé avec succès');
+        closeImport();
+        return;
+      }
+
+      setImportFeedback(feedback);
+
+      if (feedback.imported > 0) {
+        queryClient.invalidateQueries({ queryKey: ['stagiaires'] });
+      }
+
+      if (feedback.failed === 0) {
+        toast.success(`${getImportTitle(feedback)}. ${feedback.imported} stagiaire${feedback.imported > 1 ? 's' : ''} importé${feedback.imported > 1 ? 's' : ''}.`);
+        closeImport();
+        return;
+      }
+
+      toast.warning(`${getImportTitle(feedback)}. ${feedback.imported} importé${feedback.imported > 1 ? 's' : ''}, ${feedback.failed} rejetée${feedback.failed > 1 ? 's' : ''}.`);
+    },
+    onError: (error) => {
+      const feedback = getImportFeedbackFromError(error);
+
+      if (feedback) {
+        setImportFeedback(feedback);
+        toast.error(getImportTitle(feedback));
+        return;
+      }
+
+      setImportFeedback({
+        success: false,
+        message: 'Import échoué',
+        imported: 0,
+        failed: 0,
+        errors: [
+          {
+            row: null,
+            field: null,
+            message: getApiErrorMessage(error, 'Erreur réseau lors de l import.'),
+          },
+        ],
+      });
+      toast.error(getApiErrorMessage(error, 'Erreur réseau lors de l import.'));
+    },
   });
 
   const deleteMutation = useMutation({
@@ -200,6 +322,7 @@ export default function StagiairesPage() {
     setImportOpen(false);
     setImportFile(null);
     setUploadProgress(0);
+    setImportFeedback(null);
     importMutation.reset();
   };
 
@@ -418,7 +541,11 @@ export default function StagiairesPage() {
               <Input
                 type="file"
                 accept=".xlsx,.xls,.csv"
-                onChange={(event) => setImportFile(event.target.files?.[0] ?? null)}
+                onChange={(event) => {
+                  setImportFile(event.target.files?.[0] ?? null);
+                  setImportFeedback(null);
+                  importMutation.reset();
+                }}
                 className="h-10 rounded-lg border-border/50 bg-muted/30 text-[14px] file:mr-4 file:rounded-md file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-primary"
               />
               <p className="text-[12px] leading-relaxed text-muted-foreground">
@@ -435,6 +562,44 @@ export default function StagiairesPage() {
                 <div className="h-2 overflow-hidden rounded-full bg-muted">
                   <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${uploadProgress}%` }} />
                 </div>
+              </div>
+            )}
+
+            {importFeedback && (
+              <div
+                className={cn(
+                  'space-y-3 rounded-lg border p-3',
+                  importFeedback.success && importFeedback.failed === 0
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
+                    : importFeedback.success
+                      ? 'border-amber-200 bg-amber-50 text-amber-950'
+                      : 'border-destructive/30 bg-destructive/10 text-destructive',
+                )}
+              >
+                <div className="space-y-1">
+                  <p className="text-[13px] font-semibold">{getImportTitle(importFeedback)}</p>
+                  <div className="space-y-0.5 text-[12px] leading-relaxed">
+                    <p>{importFeedback.imported} stagiaire{importFeedback.imported > 1 ? 's' : ''} importé{importFeedback.imported > 1 ? 's' : ''}</p>
+                    {importFeedback.failed > 0 && (
+                      <p>{importFeedback.failed} ligne{importFeedback.failed > 1 ? 's' : ''} rejetée{importFeedback.failed > 1 ? 's' : ''}</p>
+                    )}
+                  </div>
+                </div>
+
+                {importFeedback.errors.length > 0 && (
+                  <div className="max-h-56 space-y-2 overflow-y-auto rounded-md bg-background/70 p-2 text-[12px] text-foreground">
+                    {importFeedback.errors.map((error, index) => (
+                      <div key={`${error.row ?? 'global'}-${error.field ?? 'field'}-${index}`} className="border-b border-border/40 pb-2 last:border-0 last:pb-0">
+                        <p className="font-semibold">
+                          {error.row ? `Ligne ${error.row} :` : 'Erreur :'}
+                        </p>
+                        <p className="mt-0.5 text-muted-foreground">
+                          {error.field ? `${error.field} - ${error.message}` : error.message}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

@@ -5,10 +5,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { BookOpen, Check, ChevronsUpDown, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
+import { BookOpen, Check, ChevronsUpDown, Pencil, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { filiereService, getApiErrorMessage, groupeService } from '@/services/api';
-import type { Groupe, StoreGroupePayload, User } from '@/types';
+import type { Groupe, GroupeNiveau, StoreGroupePayload, User } from '@/types';
 import { cn } from '@/lib/utils';
 import { PageHeader } from '@/components/shared/page-header';
 import { SearchInput } from '@/components/shared/search-input';
@@ -20,17 +20,45 @@ import { FiliereSelect } from '@/components/shared/filiere-select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getGroupeFiliereName, getUserFullName } from '@/utils/domain';
 
+const groupeNiveauOptions = ['1ère année', '2ème année', '3ème année'] as const satisfies readonly GroupeNiveau[];
+
+function normalizeGroupeNiveau(value?: string | null): GroupeNiveau | '' {
+  if (!value) return '';
+
+  if ((groupeNiveauOptions as readonly string[]).includes(value)) {
+    return value as GroupeNiveau;
+  }
+
+  const key = value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '');
+
+  if (['1', '1a', '1ere', '1ereannee', 'premiereannee'].includes(key)) return '1ère année';
+  if (['2', '2a', '2eme', '2emeannee', 'deuxiemeannee'].includes(key)) return '2ème année';
+  if (['3', '3a', '3eme', '3emeannee', 'troisiemeannee'].includes(key)) return '3ème année';
+
+  return '';
+}
+
 const schema = z.object({
   filiere_id: z.string().min(1, 'Filière requise'),
   nom: z.string().min(1, 'Nom requis'),
   code: z.string().min(1, 'Code requis'),
-  annee_formation: z.string().min(1, 'Année requise'),
-  niveau: z.string().min(1, 'Niveau requis'),
+  annee_formation: z
+    .string()
+    .min(1, 'Année requise')
+    .regex(/^[0-9]+$/, "L'année de formation doit contenir uniquement des chiffres."),
+  niveau: z.string().refine((value) => (groupeNiveauOptions as readonly string[]).includes(value), {
+    message: 'Sélectionnez un niveau valide.',
+  }),
   capacite: z.string().optional(),
   formateur_ids: z.array(z.number()),
 });
@@ -56,6 +84,7 @@ export default function GroupesPage() {
   });
 
   const watchFiliereId = useWatch({ control, name: 'filiere_id' });
+  const watchNiveau = useWatch({ control, name: 'niveau' });
   const watchFormateurIds = useWatch({ control, name: 'formateur_ids' }) ?? [];
 
   const { data, isLoading } = useQuery({
@@ -135,7 +164,7 @@ export default function GroupesPage() {
       nom: groupe.nom,
       code: groupe.code,
       annee_formation: groupe.annee_formation,
-      niveau: groupe.niveau,
+      niveau: normalizeGroupeNiveau(groupe.niveau),
       capacite: groupe.capacite ? String(groupe.capacite) : '',
       formateur_ids: groupe.formateurs?.map((formateur) => formateur.id) ?? [],
     });
@@ -152,7 +181,7 @@ export default function GroupesPage() {
     nom: values.nom,
     code: values.code,
     annee_formation: values.annee_formation,
-    niveau: values.niveau,
+    niveau: values.niveau as GroupeNiveau,
     capacite: values.capacite ? Number(values.capacite) : null,
     formateur_ids: values.formateur_ids,
   });
@@ -263,12 +292,38 @@ export default function GroupesPage() {
               </div>
               <div className="space-y-2">
                 <Label>Année formation</Label>
-                <Input {...register('annee_formation')} placeholder="2025/2026" className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]" />
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  step={1}
+                  {...register('annee_formation', {
+                    onChange: (event) => {
+                      event.target.value = event.target.value.replace(/\D/g, '');
+                    },
+                  })}
+                  placeholder="2025"
+                  className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]"
+                />
                 {errors.annee_formation && <p className="text-[12px] text-destructive">{errors.annee_formation.message}</p>}
               </div>
               <div className="space-y-2">
                 <Label>Niveau</Label>
-                <Input {...register('niveau')} className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]" />
+                <Select
+                  value={watchNiveau}
+                  onValueChange={(value) => setValue('niveau', value || '', { shouldDirty: true, shouldValidate: true })}
+                >
+                  <SelectTrigger className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {groupeNiveauOptions.map((niveau) => (
+                      <SelectItem key={niveau} value={niveau}>
+                        {niveau}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.niveau && <p className="text-[12px] text-destructive">{errors.niveau.message}</p>}
               </div>
               <div className="space-y-2">

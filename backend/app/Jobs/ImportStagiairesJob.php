@@ -46,13 +46,26 @@ class ImportStagiairesJob implements ShouldQueue
             'disk' => $disk,
         ]);
 
-        Excel::import(new StagiairesImport, $absolutePath);
+        $import = new StagiairesImport;
 
-        Storage::disk($disk)->delete($this->filePath);
+        try {
+            Excel::import($import, $absolutePath);
+        } catch (Throwable $exception) {
+            Log::error('Import des stagiaires echoue pendant le traitement.', [
+                'file' => $this->filePath,
+                'disk' => $disk,
+                'message' => $exception->getMessage(),
+            ]);
+
+            throw $exception;
+        } finally {
+            Storage::disk($disk)->delete($this->filePath);
+        }
 
         Log::info('Import des stagiaires termine.', [
             'file' => $this->filePath,
             'disk' => $disk,
+            'rapport' => $import->report(),
         ]);
     }
 

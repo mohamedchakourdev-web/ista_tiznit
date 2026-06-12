@@ -1,6 +1,7 @@
 export type UserRole = 'directeur' | 'gestionnaire' | 'formateur';
 export type FormateurType = 'vacataire' | 'permanent';
 export type Sexe = 'homme' | 'femme';
+export type GroupeNiveau = '1ère année' | '2ème année' | '3ème année';
 export type AbsenceType = 'absence' | 'retard';
 export type Periode = 'matin' | 'apres_midi';
 export type AutorisationStatut = 'en_attente' | 'validee' | 'refusee';
@@ -92,7 +93,7 @@ export interface Groupe {
   nom: string;
   code: string;
   annee_formation: string;
-  niveau: string;
+  niveau: GroupeNiveau | string;
   capacite: number | null;
   filiere?: Filiere;
   formateurs?: User[];
@@ -244,7 +245,7 @@ export interface StoreGroupePayload {
   nom: string;
   code: string;
   annee_formation: string;
-  niveau: string;
+  niveau: GroupeNiveau;
   capacite?: number | null;
   formateur_ids?: number[];
 }
@@ -268,6 +269,24 @@ export interface StoreStagiairePayload {
 }
 
 export type UpdateStagiairePayload = Partial<StoreStagiairePayload>;
+
+export interface ImportErrorDetail {
+  row: number | null;
+  field?: string | null;
+  message: string;
+}
+
+export interface StagiaireImportResult {
+  imported: number;
+  failed: number;
+  errors: ImportErrorDetail[];
+}
+
+export interface StagiaireImportApiResponse extends StagiaireImportResult {
+  success: boolean;
+  message: string;
+  data: StagiaireImportResult;
+}
 
 export interface StoreAbsencePayload {
   stagiaire_id: number;

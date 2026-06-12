@@ -30,7 +30,7 @@ class StagiairesImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, 
 {
     use RegistersEventListeners;
 
-    private const MAX_REPORT_ERRORS = 50;
+    private const MAX_REPORT_ERRORS = 100;
 
     private int $importedRows = 0;
 
@@ -119,8 +119,8 @@ class StagiairesImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, 
         return [
             'nom' => ['required', 'string', 'max:100'],
             'prenom' => ['required', 'string', 'max:100'],
-            'cef' => ['required', 'string', 'max:30', Rule::unique('stagiaires', 'cef')],
-            'cin' => ['required', 'string', 'max:30', Rule::unique('stagiaires', 'cin')],
+            'cef' => ['required', 'string', 'max:30', 'distinct', Rule::unique('stagiaires', 'cef')],
+            'cin' => ['required', 'string', 'max:30', 'distinct', Rule::unique('stagiaires', 'cin')],
             'email' => ['nullable', 'email', 'max:255'],
             'telephone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9]+$/'],
             'adresse' => ['nullable', 'string', 'max:255'],
@@ -142,14 +142,17 @@ class StagiairesImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, 
         return [
             'nom.required' => 'Le nom est obligatoire.',
             'prenom.required' => 'Le prenom est obligatoire.',
-            'cef.required' => 'La colonne MatriculeEtudiant est obligatoire.',
-            'cef.unique' => 'Ce matricule existe deja.',
+            'cef.required' => 'Le champ CEF est obligatoire.',
+            'cef.unique' => 'CEF déjà existant.',
+            'cef.distinct' => 'CEF en double dans le fichier.',
             'cin.required' => 'La CIN est obligatoire. Si elle est absente, MatriculeEtudiant est utilise comme valeur de secours.',
-            'cin.unique' => 'Cette CIN existe deja.',
+            'cin.unique' => 'Cette CIN existe déjà.',
+            'cin.distinct' => 'CIN en double dans le fichier.',
             'groupe_id.required' => 'Aucun groupe correspondant au CodeGroupe, NomGroupe ou Groupe fourni.',
             'groupe_id.exists' => 'Le groupe resolu est introuvable.',
             'diplome_type_id.required' => 'Aucun type de diplome correspondant au CodeDiplome fourni.',
             'diplome_type_id.exists' => 'Le type de diplome resolu est introuvable.',
+            'email.email' => 'Email invalide.',
             'sexe' => 'Le sexe doit etre homme ou femme.',
             'telephone.regex' => 'Le numéro de téléphone doit contenir uniquement des chiffres.',
         ];
@@ -181,16 +184,29 @@ class StagiairesImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, 
         foreach ($failures as $failure) {
             $this->recordSkippedRow($failure->row());
 
-            $context = [
-                'ligne' => $failure->row(),
-                'champ' => $failure->attribute(),
-                'erreurs' => $failure->errors(),
-                'valeurs' => $this->reportValues($failure->values()),
-            ];
+            $contexts = [];
 
-            $this->recordError($context);
+            foreach ($failure->errors() as $message) {
+                $values = $failure->values();
 
-            Log::warning('Import stagiaires - ligne ignoree.', $context);
+                $contexts[] = [
+                    'row' => $failure->row(),
+                    'field' => $this->fieldLabel((string) $failure->attribute()),
+                    'message' => $this->formatFailureMessage((string) $failure->attribute(), $message, $values),
+                    'values' => $this->reportValues($values),
+                ];
+            }
+
+            foreach ($contexts as $context) {
+                $this->recordError($context);
+            }
+
+            Log::warning('Import stagiaires - ligne ignoree.', [
+                'row' => $failure->row(),
+                'field' => $this->fieldLabel((string) $failure->attribute()),
+                'errors' => $failure->errors(),
+                'values' => $this->reportValues($failure->values()),
+            ]);
         }
     }
 
@@ -200,6 +216,8 @@ class StagiairesImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, 
     public function onError(Throwable $e): void
     {
         $context = [
+            'row' => null,
+            'field' => null,
             'message' => $e->getMessage(),
         ];
 
@@ -218,6 +236,30 @@ class StagiairesImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, 
             'lignes_ignorees' => $this->skippedRows,
             'erreurs_total' => $this->errorCount,
             'erreurs' => $this->errors,
+        ]);
+    }
+
+    /**
+     * Structured result consumed by the HTTP import endpoint.
+     *
+     * @return array{imported: int, failed: int, error_count: int, errors: list<array<string, mixed>>}
+     */
+    public function report(): array
+    {
+        return [
+            'imported' => $this->importedRows,
+            'failed' => $this->skippedRows,
+            'error_count' => $this->errorCount,
+            'errors' => $this->errors,
+        ];
+    }
+
+    public function addGlobalError(string $message): void
+    {
+        $this->recordError([
+            'row' => null,
+            'field' => null,
+            'message' => $message,
         ]);
     }
 
@@ -259,6 +301,11 @@ class StagiairesImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, 
             'Numero CNI',
             'CIN Etudiant',
         ]));
+        $groupeId = $this->firstValue($row, ['groupe_id', 'IdGroupe']);
+        $groupeCode = $this->firstValue($row, ['CodeGroupe', 'Code Groupe', 'GroupeCode']);
+        $groupeName = $this->firstValue($row, ['NomGroupe', 'Nom Groupe', 'Groupe', 'LibelleGroupe']);
+        $diplomeTypeId = $this->firstValue($row, ['diplome_type_id', 'IdDiplomeType']);
+        $diplomeCode = $this->firstValue($row, ['CodeDiplome', 'Code Diplome', 'DiplomeCode', 'TypeDiplome', 'Type Diplome']);
 
         return [
             'nom' => $this->stringValue($this->firstValue($row, [
@@ -307,15 +354,10 @@ class StagiairesImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, 
                 'DateNaissanceEtudiant',
                 'Date de naissance',
             ])),
-            'groupe_id' => $this->resolveGroupeId(
-                $this->firstValue($row, ['groupe_id', 'IdGroupe']),
-                $this->firstValue($row, ['CodeGroupe', 'Code Groupe', 'GroupeCode']),
-                $this->firstValue($row, ['NomGroupe', 'Nom Groupe', 'Groupe', 'LibelleGroupe']),
-            ),
-            'diplome_type_id' => $this->resolveDiplomeTypeId(
-                $this->firstValue($row, ['diplome_type_id', 'IdDiplomeType']),
-                $this->firstValue($row, ['CodeDiplome', 'Code Diplome', 'DiplomeCode', 'TypeDiplome', 'Type Diplome']),
-            ),
+            'groupe_id' => $this->resolveGroupeId($groupeId, $groupeCode, $groupeName),
+            'groupe_reference' => $this->stringValue($groupeCode) ?? $this->stringValue($groupeName) ?? $this->stringValue($groupeId),
+            'diplome_type_id' => $this->resolveDiplomeTypeId($diplomeTypeId, $diplomeCode),
+            'diplome_reference' => $this->stringValue($diplomeCode) ?? $this->stringValue($diplomeTypeId),
             'sexe' => $this->sexeValue($this->firstValue($row, [
                 'sexe',
                 'genre',
@@ -587,7 +629,32 @@ class StagiairesImport implements SkipsEmptyRows, SkipsOnError, SkipsOnFailure, 
             'matricule' => $values['cef'] ?? null,
             'cin' => $values['cin'] ?? null,
             'groupe_id' => $values['groupe_id'] ?? null,
+            'groupe_reference' => $values['groupe_reference'] ?? null,
             'diplome_type_id' => $values['diplome_type_id'] ?? null,
+            'diplome_reference' => $values['diplome_reference'] ?? null,
         ];
+    }
+
+    private function fieldLabel(string $field): string
+    {
+        $attributes = $this->customValidationAttributes();
+
+        return $attributes[$field] ?? $field;
+    }
+
+    /**
+     * @param  array<string, mixed>  $values
+     */
+    private function formatFailureMessage(string $field, string $message, array $values): string
+    {
+        if ($field === 'groupe_id' && ! $this->isBlank($values['groupe_reference'] ?? null)) {
+            return sprintf('Le groupe %s n\'existe pas.', (string) $values['groupe_reference']);
+        }
+
+        if ($field === 'diplome_type_id' && ! $this->isBlank($values['diplome_reference'] ?? null)) {
+            return sprintf('Le type de diplome %s n\'existe pas.', (string) $values['diplome_reference']);
+        }
+
+        return $message;
     }
 }

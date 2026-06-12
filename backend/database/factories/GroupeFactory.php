@@ -27,14 +27,14 @@ class GroupeFactory extends Factory
      */
     public function definition(): array
     {
-        $niveau = fake()->randomElement(['1ere annee', '2eme annee']);
+        $niveau = fake()->randomElement(['1ère année', '2ème année', '3ème année']);
         $code = strtoupper(fake()->unique()->bothify('GRP-###??'));
 
         return [
             'filiere_id' => Filiere::factory(),
             'nom' => 'Groupe '.fake()->unique()->bothify('??-##'),
             'code' => $code,
-            'annee_formation' => sprintf('%s-%s', now()->year, now()->addYear()->year),
+            'annee_formation' => (string) now()->year,
             'niveau' => $niveau,
             'capacite' => fake()->numberBetween(24, 32),
         ];
