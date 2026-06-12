@@ -62,7 +62,8 @@ function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; onNavig
   }, {});
 
   const NavLink = ({ item }: { item: NavItem }) => {
-    const isActive = pathname === item.href || (item.href !== `/${role}` && pathname.startsWith(item.href));
+    // Use exact pathname matching to avoid parent routes matching their children.
+    const isActive = pathname === item.href;
 
     const link = (
       <Link
