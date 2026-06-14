@@ -292,20 +292,35 @@ export default function GroupesPage() {
               </div>
               <div className="space-y-2">
                 <Label>Année formation</Label>
+
                 <Input
-                  type="number"
+                  type="text"
                   inputMode="numeric"
-                  min={1}
-                  step={1}
-                  {...register('annee_formation', {
-                    onChange: (event) => {
-                      event.target.value = event.target.value.replace(/\D/g, '');
-                    },
-                  })}
-                  placeholder="2025"
+                  maxLength={9} // 2025/2026 = 9 caractères
+                  {...register('annee_formation')}
+                  onChange={(e) => {
+                    // Garde uniquement les chiffres
+                    let value = e.target.value.replace(/\D/g, '');
+
+                    // Limite à 8 chiffres
+                    value = value.slice(0, 8);
+
+                    // Ajoute automatiquement "/"
+                    if (value.length > 4) {
+                      value = `${value.slice(0, 4)}/${value.slice(4)}`;
+                    }
+
+                    e.target.value = value;
+                  }}
+                  placeholder="2025/2026"
                   className="h-9 rounded-lg border-border/50 bg-muted/30 text-[14px]"
                 />
-                {errors.annee_formation && <p className="text-[12px] text-destructive">{errors.annee_formation.message}</p>}
+
+                {errors.annee_formation && (
+                  <p className="text-[12px] text-destructive">
+                    {errors.annee_formation.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Niveau</Label>
